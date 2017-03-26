@@ -131,7 +131,7 @@ public class MysqlTableDao implements TableDao{
 	 */
 	public String getJavaType(String mysqlType) {
 		String javaType = "String";
-		switch (mysqlType) {
+		switch (mysqlType.toLowerCase()) {
 		case "bigint":
 			javaType="Long";
 			break;
@@ -158,6 +158,9 @@ public class MysqlTableDao implements TableDao{
 			break;
 		case "smallint":
 			javaType = "Integer";
+			break;
+		case "mediumint":
+			javaType="Integer";
 			break;
 		case "bit":
 			javaType = "Boolean";

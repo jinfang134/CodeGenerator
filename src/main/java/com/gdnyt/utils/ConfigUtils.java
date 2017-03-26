@@ -28,7 +28,6 @@ public class ConfigUtils {
 			e1.printStackTrace();
 		}
 		return p.getProperty(key);
-
 	}
 	
 	public static String get(String key) {
