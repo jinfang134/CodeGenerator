@@ -4,8 +4,6 @@
 *.jar
 *.war
 *.ear
-/target/
-/src/
 *.log
+
 target/
-bin/

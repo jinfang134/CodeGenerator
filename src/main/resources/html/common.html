@@ -1,0 +1,24 @@
+常用对象说明
+
+数据表（table）
+--描述数据库中的某一个表 主要包括以下变量：
+packagename(String)	包名，即基础包名
+name(String)表名
+columnlist(List<Column>)列集合
+comment(String)	表备注
+classname(	String)	类名（即去掉表名前缀，并将首字母转为大写）
+lowername(	String)	去掉前缀的表名
+
+列（column）
+--描述数据表中的某一列,主要包括以下变量
+
+name	(String) 列名（去掉了_） 
+comment (String)备注 
+type (String) 数据类型 
+length (int)	数据长充 
+bigname (String) 将列名变为首字母大写 
+columnname (String) 列名 
+isnull	 (String) 是否为空（YES或者NO） 
+columntype	 (String) 数据类型 
+columnkey 	(String) 是否主键 
+extra	(String) 其它 
