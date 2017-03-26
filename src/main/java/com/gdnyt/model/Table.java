@@ -70,11 +70,15 @@ public class Table {
 	public String getClassname() {
 		return classname;
 	}
-
+	/**
+	 * 
+	 * @param tableName
+	 */
 	public void setClassname(String tableName) {
 		String[] pre = prefix.split(",");
 		for (String s : pre) {
-			tableName = tableName.replace(s, "");
+			 //替换表名前缀。
+			tableName=tableName.replaceFirst(s, "");
 		}
 		if (tableName.contains("_")) {
 			StringBuilder stringBuilder = new StringBuilder();
