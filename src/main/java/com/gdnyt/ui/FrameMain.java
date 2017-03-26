@@ -38,6 +38,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.gdnyt.dao.MysqlTableDao;
 import com.gdnyt.model.Setting;
@@ -49,6 +50,7 @@ import com.gdnyt.view.TabbedPane;
 
 import freemarker.log.Logger;
 
+@SpringBootApplication
 public class FrameMain extends JFrame implements MouseListener, SyntaxConstants {
 	public static  JProgressBar progressBar;
 	public static JLabel status_text;
