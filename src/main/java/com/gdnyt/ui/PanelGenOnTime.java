@@ -36,20 +36,18 @@ import freemarker.template.TemplateException;
  *
  */
 public class PanelGenOnTime extends JPanel implements SyntaxConstants {
+	Logger log = Logger.getLogger(PanelGenOnTime.class);
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private static Font font = new Font("微软雅黑", Font.PLAIN, 14);
-	Logger log = Logger.getLogger(PanelGenOnTime.class);
 	private Setting setting;
-	private JButton  btn_gensql, exportpathselect;
-	private JTextField  exportpath_text;
+	private JButton  btn_gen;
 	private RSyntaxTextArea textArea_temp;
 	private RSyntaxTextArea textArea_code;
 	private CodeGenService genService;
-	private JButton btn_import;
-	private AbstractButton btn_savetem;
+	
 	private JTextField text_mode_prefix;
 	private JLabel label;
 
@@ -65,9 +63,9 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 		add(panel, BorderLayout.NORTH);
 		panel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		
-		btn_gensql = new JButton("执行");
-		btn_gensql.setBounds(new Rectangle(2, 2, 2, 2));
-		btn_gensql.addActionListener(new GenSQLFromExcelAction());
+		btn_gen = new JButton("执行");
+		btn_gen.setBounds(new Rectangle(2, 2, 2, 2));
+		btn_gen.addActionListener(new GenSQLFromExcelAction());
 
 		label = new JLabel("表前缀：");
 		panel.add(label);
@@ -75,7 +73,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 		text_mode_prefix = new JTextField();
 		panel.add(text_mode_prefix);
 		text_mode_prefix.setColumns(10);
-		panel.add(btn_gensql);
+		panel.add(btn_gen);
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.5);
@@ -107,7 +105,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 		textArea_code.setClearWhitespaceLinesEnabled(false);
 		RTextScrollPane scrollPane2 = new RTextScrollPane(textArea_code, true);
 		Gutter gutter2 = scrollPane2.getGutter();
-		splitPane.setRightComponent(textArea_code);
+		splitPane.setRightComponent(scrollPane2);
 
 	}
 
