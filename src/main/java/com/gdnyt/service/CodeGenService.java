@@ -59,6 +59,16 @@ public class CodeGenService {
 			JOptionPane.showMessageDialog(null, "生成失败");
 		}
 	}
+	/**
+	 * 根据模板字符串写入文件
+	 */
+	public String genCode(String template,String dbName,String tableName) throws TemplateException{
+		List<Table> tabless=getTables(dbName,tableName);
+		Map<String ,Object> map=new HashMap<>();
+		map.put("table", tabless.get(0));
+		String code=freemarkerService.genByTextModel(template, map);
+		return code;
+	}
 	
 	/**
 	 * 写入单个文件

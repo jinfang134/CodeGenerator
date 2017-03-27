@@ -56,6 +56,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 	public static JLabel status_text;
 	public static JTree tree;
 	public static  String[] tablenames;
+	private static final String GEN_ON_TIME = "实时生成";
 	/**
 	 * 
 	 */
@@ -250,6 +251,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		toolBar.add(lblNewLabel_1);
 
 		pwd_text = new JPasswordField();
+		pwd_text.setColumns(6);
 		toolBar.add(pwd_text);
 	
 
@@ -273,7 +275,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		JToolBar toolBar_1 = new JToolBar();
 		panel.add(toolBar_1);
 
-		btnsql = new JButton("生成sql");
+		btnsql = new JButton(GEN_ON_TIME);
 		btnsql.addActionListener(new AddFrameAction());
 		btnsql.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/database_blue.png")));
 		toolBar_1.add(btnsql);
@@ -421,6 +423,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 	 */
 	private class AddFrameAction extends AbstractAction {
 
+		
 		/**
 		 * 
 		 */
@@ -456,7 +459,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		public void actionPerformed(ActionEvent e) {
 			
 			if (e.getSource() == btnsql) {
-				addFrame("生成sql", new PanelExcel());
+				addFrame(GEN_ON_TIME, new PanelGenOnTime());
 			}
 			if (e.getSource() == btn_ModelGen) {
 				addFrame("模板生成", new PanelGenFromModel());

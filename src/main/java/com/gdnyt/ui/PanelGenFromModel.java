@@ -37,7 +37,7 @@ import freemarker.template.TemplateException;
 
 
 /**
- * 根据批量模板来生成代码
+ * 根据写入的模板来生成代码
  * 
  * @author jinfang
  *
