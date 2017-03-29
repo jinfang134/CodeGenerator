@@ -66,12 +66,27 @@ public class ApplicantBatchPojoBuilder {
 
     }
 
-    private static String getString(IfxIELineInfo ifxLineinfo, ApplicantFields field) {
-        return ifxLineinfo.getColumnSet().getString(field.getFieldName()).orElse(null);
+   private static Integer getInteger(IfxIELineInfo ifxLineinfo, String string) {
+        return ifxLineinfo.getColumnSet().getInt(string).orElse(0);
     }
 
-    private static LocalDate getLocalDate(IfxIELineInfo ifxLineinfo, ApplicantFields field) {
-        return ifxLineinfo.getColumnSet().getLocalDate(field.getFieldName()).orElse(null);
+    private static boolean getBoolean(IfxIELineInfo ifxLineinfo, String string) {
+        return ifxLineinfo.getColumnSet().getBoolean(string).orElse(false);
     }
 
+    private static BigDecimal getBigDecimal(IfxIELineInfo ifxLineinfo, String string) {
+        return ifxLineinfo.getColumnSet().getBigDecimal(string).orElse(new BigDecimal(0));
+    }
+
+    private static Object getLocalDateTime(IfxIELineInfo ifxLineinfo, String string) {
+        return ifxLineinfo.getColumnSet().getLocalDate(string).orElse(null);
+    }
+
+    private static String getString(IfxIELineInfo ifxLineinfo, String string) {
+        return ifxLineinfo.getColumnSet().getString(string).orElse(null);
+    }
+
+    private static LocalDate getLocalDate(IfxIELineInfo ifxLineinfo, String field) {
+        return ifxLineinfo.getColumnSet().getLocalDate(field).orElse(null);
+    }
 }
