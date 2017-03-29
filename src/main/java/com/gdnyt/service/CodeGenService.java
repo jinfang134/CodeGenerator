@@ -63,11 +63,19 @@ public class CodeGenService {
 	 * 根据模板字符串写入文件
 	 */
 	public String genCode(String template,String dbName,String tableName) throws TemplateException{
+		Map<String, Object> map = setMap(dbName, tableName);
+		String code=freemarkerService.genByTextModel(template, map);
+		return code;
+	}
+	private Map<String, Object> setMap(String dbName, String tableName) {
 		List<Table> tabless=getTables(dbName,tableName);
 		Map<String ,Object> map=new HashMap<>();
 		map.put("table", tabless.get(0));
-		String code=freemarkerService.genByTextModel(template, map);
-		return code;
+		map.put("tables", tabless);
+		for(Table table:tabless){
+			map.put(table.getClassname(), table);
+		}
+		return map;
 	}
 	
 	/**

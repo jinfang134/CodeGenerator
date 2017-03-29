@@ -139,19 +139,19 @@ public class MysqlTableDao implements TableDao{
 			javaType = "String";
 			break;
 		case "date":
-			javaType = "Date";
+			javaType = "LocalDate";
+			break;
+		case "datetime":
+			javaType = "LocalDateTime";
+			break;
+		case "time":
+			javaType = "LocalTime";
 			break;
 		case "int":
 			javaType = "Integer";
 			break;
 		case "timestamp":
 			javaType="Date";
-			break;
-		case "datetime":
-			javaType = "Date";
-			break;
-		case "time":
-			javaType = "Date";
 			break;
 		case "tinyint":
 			javaType = "Integer";

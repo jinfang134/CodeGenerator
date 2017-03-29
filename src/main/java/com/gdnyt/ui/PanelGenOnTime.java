@@ -124,17 +124,20 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 				MessageBox.showErrorMessage("请选择要生成的表");
 				return;
 			}
+			StringBuilder sb = new StringBuilder();
+			for (int i : rows) {
+				sb.append(FrameMain.tablenames[i - 1] + ",");
+			}
+			String selectedTableNames = sb.toString();
 			if (textArea_temp.getText().length() == 0) {
 				MessageBox.showErrorMessage("请先载入或者编辑模板");
 				return;
 			}
 
-			setting.setPrefix(text_mode_prefix.getText());
-			StringBuilder sb = new StringBuilder();
-			String tableName = FrameMain.tablenames[rows[0] - 1];
+			setting.setPrefix(text_mode_prefix.getText());					
 			String dbName = setting.getDbname();
 			try {
-				String code = genService.genCode(textArea_temp.getText(), dbName, tableName);
+				String code = genService.genCode(textArea_temp.getText(), dbName, selectedTableNames);
 				textArea_code.setText(code);
 			} catch (TemplateException e2) {
 				e2.printStackTrace();
