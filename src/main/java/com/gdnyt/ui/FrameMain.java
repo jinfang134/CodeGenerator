@@ -89,24 +89,10 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		loadSetting();
 		// loadTree();
 	}
+	
+	
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-					FrameMain window = new FrameMain();
-					window.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
