@@ -3,6 +3,8 @@ package com.gdnyt.dao;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.springframework.stereotype.Repository;
+
 import com.gdnyt.model.Column;
 import com.gdnyt.model.Table;
 
@@ -11,6 +13,7 @@ import com.gdnyt.model.Table;
  * @author jinfang
  *
  */
+@Repository
 public interface TableDao {
 
 	

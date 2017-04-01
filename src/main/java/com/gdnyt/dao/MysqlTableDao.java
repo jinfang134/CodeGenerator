@@ -1,45 +1,47 @@
 package com.gdnyt.dao;
 
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import com.gdnyt.model.Column;
 import com.gdnyt.model.Table;
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.Statement;
 
+@Repository
 public class MysqlTableDao implements TableDao{
 	
 	private static Logger log = Logger.getLogger(MysqlTableDao.class);
 
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
 	/**
 	 * 获取数据库中的所有数据库名字
 	 * @return
 	 */
 	public String[] getSchemaList(){
-		List<String> schemaList=new ArrayList<>();
-		Connection con = JDBCUtil.getConnection();
-		try {
-			Statement stmt = (Statement) con.createStatement();
-			String query = "select * from schemata ";
-			ResultSet rs = stmt.executeQuery(query);
-			while (rs.next()) {				
-				schemaList.add(rs.getString("SCHEMA_NAME"));				
-			}
-			JDBCUtil.closeAll(rs, stmt, con);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			log.error(e);
-		}
-		log.debug(schemaList.toString());	
+		
+		String sql = "select * from schemata ";
+		List<String> schemaList=jdbcTemplate.query(sql, (rs,i)->{
+			return rs.getString("SCHEMA_NAME");
+		});
+		log.info(schemaList.toString());	
 		schemaList.remove("information_schema");
 		schemaList.remove("mysql");
 		schemaList.remove("performance_schema");
 		return schemaList.toArray(new String[schemaList.size()]);
+		
 	}
 	
 	/**
@@ -48,20 +50,10 @@ public class MysqlTableDao implements TableDao{
 	 * @return
 	 */
 	public String[] getTableNames(String dbName){
-		List<String> tables=new ArrayList<>();
-		Connection con = JDBCUtil.getConnection();
-		try {
-			Statement stmt = (Statement) con.createStatement();
-			String query = "select * from tables where TABLE_SCHEMA= '"+dbName+"'";
-			ResultSet rs = stmt.executeQuery(query);
-			while (rs.next()) {				
-				tables.add(rs.getString("TABLE_NAME"));				
-			}
-			JDBCUtil.closeAll(rs, stmt, con);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			log.error(e);
-		}
+		String sql="select * from tables where TABLE_SCHEMA= ?";
+		List<String> tables= jdbcTemplate.query(sql, new Object[]{dbName}, (rs,index)->{
+			 return rs.getString("TABLE_NAME");
+		});
 		log.info(tables.toString());		
 		return tables.toArray(new String[tables.size()]);
 	}
@@ -75,12 +67,8 @@ public class MysqlTableDao implements TableDao{
 	 * @throws SQLException
 	 */
 	public List<Column> getColumns(String dbname,String tablename) throws SQLException {
-		Connection con = JDBCUtil.getConnection();
-		Statement stmt = (Statement) con.createStatement();
-		String query = "select * from columns where table_name='" + tablename + "' and table_schema='"+dbname+"'";
-		ResultSet rs = stmt.executeQuery(query);
-		List<Column> columns = new ArrayList<>();
-		while (rs.next()) {
+		String sql = "select * from columns where table_name=? and table_schema=?";
+		return jdbcTemplate.query(sql, new Object[]{tablename,dbname},(rs,i)->{
 			Column column = new Column();
 			String comment=rs.getString("COLUMN_COMMENT").trim();
 			//如果备注为空，则用列名代替
@@ -96,33 +84,22 @@ public class MysqlTableDao implements TableDao{
 			column.setColumnkey(rs.getString("COLUMN_KEY"));
 			column.setExtra(rs.getString("EXTRA"));		
 			column.getBigname();
-			columns.add(column);
-		}
-		JDBCUtil.closeAll(rs, stmt, con);
-		log.debug(columns.toString());
-		return columns;
+			return column;
+		});
+		
 	}
 
 	public Table getTable(String dbname,String tablename) {
-		Table table = null;
-		Connection con = JDBCUtil.getConnection();
-		try {
-			Statement stmt = (Statement) con.createStatement();
-			String query = "select * from tables where table_name='" + tablename + "' and table_schema='"+dbname+"'";
-			ResultSet rs = stmt.executeQuery(query);
-			while (rs.next()) {
-				table = new Table();
-				table.setComment(rs.getString("TABLE_COMMENT"));
-				table.setName(tablename);
-				table.setColumnlist(getColumns(dbname,tablename));				
-			}
-			JDBCUtil.closeAll(rs, stmt, con);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			log.error(e);
-		}
-		log.debug(table.toString());
-		return table;
+		String sql= "select * from tables where table_name=? and table_schema=?";
+		return jdbcTemplate.queryForObject(
+	            sql,
+	            new Object[]{tablename,dbname}, (rs,i)->{
+	    			Table table = new Table();
+	    			table.setComment(rs.getString("TABLE_COMMENT"));
+	    			table.setName(tablename);
+	    			table.setColumnlist(getColumns(dbname,tablename));	
+	    			return table;
+	    		});
 	}
 	
 

@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.Resource;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -23,6 +24,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.springframework.stereotype.Component;
 
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
@@ -42,6 +44,7 @@ import freemarker.template.TemplateException;
  * @author jinfang
  *
  */
+@Component
 public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 	Logger log = Logger.getLogger(PanelGenFromModel.class);
 	
@@ -51,14 +54,15 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 	private JComboBox comboBox_suffix;
 	String[] suffix=new String[]{".java",".cs",".html",".sql",".jsp",".aspx",".xml",".js"};
 	private Setting setting;
+	
 	private CodeGenService genService;
 	
 	
 	//构造器
-	public PanelGenFromModel(){
+	public PanelGenFromModel(CodeGenService genService){
 		initView();
 		setting = Setting.getInstance();
-		genService = new CodeGenService();
+		this.genService=genService;
 	}
 	
 	//初始化界面

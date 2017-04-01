@@ -3,7 +3,6 @@ package com.gdnyt.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
@@ -16,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import javax.swing.AbstractAction;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -38,9 +36,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.gdnyt.dao.MysqlTableDao;
+import com.gdnyt.dao.TableDao;
+import com.gdnyt.dto.ConnectionInfoContainer;
 import com.gdnyt.model.Setting;
 import com.gdnyt.model.Table;
 import com.gdnyt.service.CodeGenService;
@@ -50,18 +49,20 @@ import com.gdnyt.view.TabbedPane;
 
 import freemarker.log.Logger;
 
-@SpringBootApplication
+@org.springframework.stereotype.Component
 public class FrameMain extends JFrame implements MouseListener, SyntaxConstants {
+	Logger log = Logger.getLogger(this.getName());
+	private JdbcTemplate jdbcTemplate;
+	private TableDao tableDao;
+	CodeGenService genService;
+
 	public static  JProgressBar progressBar;
 	public static JLabel status_text;
 	public static JTree tree;
 	public static  String[] tablenames;
 	private static final String GEN_ON_TIME = "实时生成";
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
-	Logger log = Logger.getLogger(this.getName());
 	private JComboBox db_comboBox;
 	private static Font font = new Font("微软雅黑", Font.PLAIN, 14);
 	private JTextField host_text, port_text, pwd_text;
@@ -70,21 +71,32 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 	private JButton initbutton,connectButton, btnsql;
 	private JButton btn_ModelGen,btn_foldGen;	
 	private JMenu menu;
-	private MysqlTableDao tableDao;
 	private TabbedPane tabbedPane;
 	private JScrollPane treeView;
-	CodeGenService genService;
-	private JPasswordField passwordField;
 	
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+
+	public void setTableDao(TableDao mysqlTableDao) {
+		this.tableDao = mysqlTableDao;
+	}
+
+	public void setGenService(CodeGenService genService) {
+		this.genService = genService;
+	}
+
 	/**
 	 * Create the application.
 	 */
-	public FrameMain() {
+	public FrameMain(JdbcTemplate jdbcTemplate,TableDao tableDao,CodeGenService genService) {
+		
 		setIconImage(Toolkit.getDefaultToolkit().getImage(FrameMain.class.getResource("/icon/basket_shopping.png")));
 		initFont();
 		setting = Setting.getInstance();		
-		genService = new CodeGenService();
-		tableDao = new MysqlTableDao();
+		this.genService=genService;
+		this.tableDao=tableDao;
+		this.jdbcTemplate=jdbcTemplate;
 		initialize();
 		loadSetting();
 		// loadTree();
@@ -159,7 +171,8 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		tabbedPane.setCloseButtonEnabled(true);
 	//	tabbedPane.addTab("模板生成", null, makeGenFromModel(), "根据现有的模板来生成代码");
 		// tabbedPane.addTab("生成sql", null, makeGenSql(), "根据excel生成sql");
-		tabbedPane.addTab("批量生成", null, new PanelGenFold());
+		PanelGenFold batchGen=new PanelGenFold(genService);
+		tabbedPane.addTab("批量生成", null,batchGen);
 	}
 
 	/**
@@ -239,18 +252,19 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		pwd_text = new JPasswordField();
 		pwd_text.setColumns(6);
 		toolBar.add(pwd_text);
-	
-
+		
+		db_comboBox = new JComboBox();
+		
 		connectButton = new JButton("连接数据库");
-		connectButton.addActionListener(new ConnectDBAction());
+		ConnectionInfoContainer infoDto=new ConnectionInfoContainer(host_text, port_text, user_text, pwd_text);
+		connectButton.addActionListener(new ConnectDBAction(tableDao, infoDto, jdbcTemplate, db_comboBox));
 		connectButton.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/database_lightning.png")));
 		toolBar.add(connectButton);
 
 		JLabel lblNewLabel_2 = new JLabel(" 数据库：");
 		toolBar.add(lblNewLabel_2);
-
-		db_comboBox = new JComboBox();
 		toolBar.add(db_comboBox);
+	
 
 		// 添加初始化按钮
 		initbutton = new JButton(" 加载表");
@@ -350,42 +364,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 	}
 
 
-
-
 	
-
-
-	
-
-	private class ConnectDBAction extends AbstractAction {
-
-		public ConnectDBAction() {
-			putValue(NAME, "Bookmarks");
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			setting.setHost(host_text.getText());
-			setting.setPort(port_text.getText());
-			setting.setPwd(pwd_text.getText());
-			setting.setUser(user_text.getText());
-			loadDataBase();
-		}
-		
-		private void loadDataBase() {
-
-			try {
-				String[] schema = tableDao.getSchemaList();
-				db_comboBox.setModel(new DefaultComboBoxModel<>(schema));
-				db_comboBox.setSelectedItem(setting.getDbname());
-				JOptionPane.showMessageDialog(null, "数据库连接成功", "恭喜您", JOptionPane.INFORMATION_MESSAGE);
-			} catch (Exception e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(null, "数据库连接失败", "出错啦", JOptionPane.ERROR_MESSAGE);
-			}
-		}
-
-	}
 
 	private class LoadDBAction extends AbstractAction {
 
@@ -445,19 +424,16 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		public void actionPerformed(ActionEvent e) {
 			
 			if (e.getSource() == btnsql) {
-				addFrame(GEN_ON_TIME, new PanelGenOnTime());
+				addFrame(GEN_ON_TIME, new PanelGenOnTime(genService));
 			}
 			if (e.getSource() == btn_ModelGen) {
-				addFrame("模板生成", new PanelGenFromModel());
+				addFrame("模板生成", new PanelGenFromModel(genService));
 			}
 			if(e.getSource()==btn_foldGen){
-				addFrame("批量生成", new PanelGenFold());
+				addFrame("批量生成", new PanelGenFold(genService));
 			}
 		}
 	}
-
-
-
 
 	private class AboutAction extends AbstractAction {
 

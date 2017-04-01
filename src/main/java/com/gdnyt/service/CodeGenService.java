@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.gdnyt.dao.MysqlTableDao;
 import com.gdnyt.dao.TableDao;
@@ -18,11 +21,15 @@ import com.gdnyt.utils.FileUtil;
 
 import freemarker.template.TemplateException;
 
+@Component
 public class CodeGenService {
 	Logger log = Logger.getLogger(CodeGenService.class);	
-	private TableDao tableDao;	
+	@Autowired
+	private TableDao MysqlTableDao;	
 	private Setting setting;
+	@Resource
 	private FreemarkerService freemarkerService;
+	
 	String charset="UTF-8";	
 	
 	String path="";
@@ -35,9 +42,7 @@ public class CodeGenService {
 
 
 	public CodeGenService(){
-		freemarkerService=new FreemarkerService();
 		setting= Setting.getInstance();
-		tableDao=new MysqlTableDao();		
 	}
 
 	
@@ -133,7 +138,7 @@ public class CodeGenService {
 			return new ArrayList<Table>();
 		List<Table> tables=new ArrayList<>();
 		for(String s:ss){
-			table=tableDao.getTable(dbname,s);
+			table=MysqlTableDao.getTable(dbname,s);
 			tables.add(table);
 		}
 		return tables;		

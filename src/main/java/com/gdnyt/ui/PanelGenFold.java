@@ -17,6 +17,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.gdnyt.dao.MysqlTableDao;
 import com.gdnyt.model.Setting;
@@ -26,6 +28,7 @@ import com.gdnyt.utils.MessageBox;
 
 import freemarker.template.TemplateException;
 import net.miginfocom.swing.MigLayout;
+
 import java.awt.Color;
 
 /**
@@ -36,23 +39,24 @@ import java.awt.Color;
  * @author jinfang
  *
  */
+
 public class PanelGenFold extends JPanel {
 
 	private JTextField text_temp, path_text, package_text, prefix_text, viewset;
 	private JButton pathButton, genButton, btn_temppath;
-	private JRadioButton mustOpenButton;
+	private JRadioButton mustOpenButton;	
 	private CodeGenService genService;
 	private Setting setting;
-	private MysqlTableDao tableDao;
 	private JTextField textField;
 	private JTextArea txtarea_msg;
 	private JLabel label;
 
-	public PanelGenFold() {
+	
+	
+	public PanelGenFold(CodeGenService genService) {
 		initView();
-		genService = new CodeGenService();
 		setting = Setting.getInstance();
-		tableDao = new MysqlTableDao();
+		this.genService=genService;
 		path_text.setText(setting.getPath() == null ? "" : setting.getPath());
 		package_text.setText(setting.getPackagename());
 		prefix_text.setText(setting.getPrefix());

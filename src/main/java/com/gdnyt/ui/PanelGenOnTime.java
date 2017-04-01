@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.Resource;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
@@ -22,6 +23,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.springframework.stereotype.Component;
 
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
@@ -35,6 +37,7 @@ import freemarker.template.TemplateException;
  * @author jinfang
  *
  */
+
 public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 	Logger log = Logger.getLogger(PanelGenOnTime.class);
 	/**
@@ -46,16 +49,17 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 	private JButton  btn_gen;
 	private RSyntaxTextArea textArea_temp;
 	private RSyntaxTextArea textArea_code;
+	
 	private CodeGenService genService;
 	
 	private JTextField text_mode_prefix;
 	private JLabel label;
 
-	public PanelGenOnTime() {
+	public PanelGenOnTime(CodeGenService genService) {
 		setLayout(new BorderLayout(0, 0));
 		setting = Setting.getInstance();
+		this.genService=genService;
 		initView();
-		genService = new CodeGenService();
 	}
 
 	private void initView() {

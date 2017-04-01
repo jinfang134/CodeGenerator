@@ -7,6 +7,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import org.springframework.stereotype.Component;
+
 import com.gdnyt.model.Column;
 import com.gdnyt.model.Table;
 import com.jgoodies.forms.factories.FormFactory;
@@ -19,6 +21,7 @@ import com.jgoodies.forms.layout.RowSpec;
  * @author jinfang
  *
  */
+
 public class PanelTableMsg extends JPanel{
 	private Table table;
 	

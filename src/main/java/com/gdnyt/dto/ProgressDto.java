@@ -1,12 +1,12 @@
-package com.gdnyt.model;
+package com.gdnyt.dto;
 
 import java.util.Observable;
 
-public class UIData extends Observable{
+public class ProgressDto extends Observable{
 	private String genStatus;
 	private int progress;
 	
-	public UIData(){
+	public ProgressDto(){
 		
 	}
 	
