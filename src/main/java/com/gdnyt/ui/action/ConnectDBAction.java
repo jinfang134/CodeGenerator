@@ -1,4 +1,4 @@
-package com.gdnyt.ui;
+package com.gdnyt.ui.action;
 
 import java.awt.event.ActionEvent;
 
@@ -30,17 +30,12 @@ public class ConnectDBAction extends AbstractAction {
 		this.db_comboBox=db_comboBox;
 		this.tableDao=tableDao;
 		setting=Setting.getInstance();
-		setting.setHost(connectionInfo.getHost().getText());
-		setting.setPort(connectionInfo.getPort().getText());
-		setting.setPwd(connectionInfo.getPassword().getText());
-		setting.setUser(connectionInfo.getUsername().getText());
 	}
 	
 	private DataSource getDataSource(){
-		
 		String url ="jdbc:mysql://%s:%s/information_schema?useUnicode=true&characterEncoding=UTF-8";
 		PoolProperties properties=new PoolProperties();
-		properties.setUrl(url.format(url, connectionInfo.getHost().getText(),connectionInfo.getPort().getText()));
+		properties.setUrl(String.format(url, connectionInfo.getHost().getText(),connectionInfo.getPort().getText()));
 		properties.setUsername(connectionInfo.getUsername().getText());
 		properties.setPassword(connectionInfo.getPassword().getText());
 		DataSource dataSource=new org.apache.tomcat.jdbc.pool.DataSource(properties);
@@ -51,7 +46,17 @@ public class ConnectDBAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 		jdbcTemplate.setDataSource(getDataSource());
 		loadDataBase();
+		saveConnectionInfo();
 	}
+
+	private void saveConnectionInfo() {
+		setting.setHost(connectionInfo.getHost().getText());
+		setting.setPort(connectionInfo.getPort().getText());
+		setting.setUser(connectionInfo.getUsername().getText());
+		setting.setPwd(connectionInfo.getPassword().getText());
+	}
+	
+	
 	
 	private void loadDataBase() {
 

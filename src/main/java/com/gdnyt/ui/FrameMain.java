@@ -14,6 +14,7 @@ import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import javax.sql.DataSource;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -35,6 +36,7 @@ import javax.swing.UIManager;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -43,6 +45,7 @@ import com.gdnyt.dto.ConnectionInfoContainer;
 import com.gdnyt.model.Setting;
 import com.gdnyt.model.Table;
 import com.gdnyt.service.CodeGenService;
+import com.gdnyt.ui.action.ConnectDBAction;
 import com.gdnyt.utils.MessageBox;
 import com.gdnyt.view.MyDefaultTreeCellRenderer;
 import com.gdnyt.view.TabbedPane;
@@ -53,6 +56,7 @@ import freemarker.log.Logger;
 public class FrameMain extends JFrame implements MouseListener, SyntaxConstants {
 	Logger log = Logger.getLogger(this.getName());
 	private JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplateForTable;
 	private TableDao tableDao;
 	CodeGenService genService;
 
@@ -68,29 +72,19 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 	private JTextField host_text, port_text, pwd_text;
 	private Setting setting;
 	private JTextField user_text;
-	private JButton initbutton,connectButton, btnsql;
+	private JButton initbutton,connectButton, btnsql,btn_table;
 	private JButton btn_ModelGen,btn_foldGen;	
 	private JMenu menu;
 	private TabbedPane tabbedPane;
 	private JScrollPane treeView;
 	
-	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
-
-	public void setTableDao(TableDao mysqlTableDao) {
-		this.tableDao = mysqlTableDao;
-	}
-
-	public void setGenService(CodeGenService genService) {
-		this.genService = genService;
-	}
 
 	/**
 	 * Create the application.
 	 */
-	public FrameMain(JdbcTemplate jdbcTemplate,TableDao tableDao,CodeGenService genService) {
-		
+	public FrameMain(JdbcTemplate jdbcTemplate,JdbcTemplate jdbcTemplate2,
+			TableDao tableDao,CodeGenService genService) {
+		this.jdbcTemplateForTable=jdbcTemplate2;
 		setIconImage(Toolkit.getDefaultToolkit().getImage(FrameMain.class.getResource("/icon/basket_shopping.png")));
 		initFont();
 		setting = Setting.getInstance();		
@@ -279,6 +273,11 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		btnsql.addActionListener(new AddFrameAction());
 		btnsql.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/database_blue.png")));
 		toolBar_1.add(btnsql);
+		
+		btn_table = new JButton("按表生成");
+		btn_table.addActionListener(new AddFrameAction());
+		btn_table.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/database_blue.png")));
+		toolBar_1.add(btn_table);
 
 		btn_ModelGen = new JButton("模板生成");
 		btn_ModelGen.addActionListener(new AddFrameAction());
@@ -343,39 +342,51 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		pwd_text.setText(setting.getPwd());
 	}
 
-	/**
-	 * 加载树
-	 */
-	private void loadTree() {
-
-		String dbname = (String) db_comboBox.getSelectedItem();
-		tablenames = tableDao.getTableNames(dbname);
-		DefaultMutableTreeNode node = new DefaultMutableTreeNode(dbname);
-		for (String s : tablenames) {
-			DefaultMutableTreeNode tableNode = new DefaultMutableTreeNode(s);
-			node.add(tableNode);
-		}
-		tree.setModel(new DefaultTreeModel(node));
-		// 设置自定义描述类
-		tree.setCellRenderer(new MyDefaultTreeCellRenderer());
-		treeView.setSize(200, treeView.getHeight());
-		treeView.updateUI();
-		tabbedPane.updateUI();
-	}
-
+	
 
 	
 
 	private class LoadDBAction extends AbstractAction {
-
+		private String tableName;
 		public LoadDBAction() {
 			putValue(NAME, "Bookmarks");
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			setting.setDbname((String) db_comboBox.getSelectedItem());
+			tableName=(String) db_comboBox.getSelectedItem();
+			setting.setDbname(tableName);
 			loadTree();
+			jdbcTemplateForTable.setDataSource(getDataSource());			
+		}
+		
+		private DataSource getDataSource(){
+			String url ="jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8";
+			PoolProperties properties=new PoolProperties();
+			properties.setUrl(String.format(url, host_text.getText(),port_text.getText(),tableName));
+			properties.setUsername(user_text.getText());
+			properties.setPassword(pwd_text.getText());
+			DataSource dataSource=new org.apache.tomcat.jdbc.pool.DataSource(properties);
+			return dataSource;
+		}
+		/**
+		 * 加载树
+		 */
+		private void loadTree() {
+
+			String dbname = (String) db_comboBox.getSelectedItem();
+			tablenames = tableDao.getTableNames(dbname);
+			DefaultMutableTreeNode node = new DefaultMutableTreeNode(dbname);
+			for (String s : tablenames) {
+				DefaultMutableTreeNode tableNode = new DefaultMutableTreeNode(s);
+				node.add(tableNode);
+			}
+			tree.setModel(new DefaultTreeModel(node));
+			// 设置自定义描述类
+			tree.setCellRenderer(new MyDefaultTreeCellRenderer());
+			treeView.setSize(200, treeView.getHeight());
+			treeView.updateUI();
+			tabbedPane.updateUI();
 		}
 
 	}
@@ -431,6 +442,9 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 			}
 			if(e.getSource()==btn_foldGen){
 				addFrame("批量生成", new PanelGenFold(genService));
+			}
+			if(e.getSource()==btn_table){
+				addFrame("按表生成", new PanelGenFromTable(genService));
 			}
 		}
 	}

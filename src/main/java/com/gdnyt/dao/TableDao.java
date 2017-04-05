@@ -40,7 +40,7 @@ public interface TableDao {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<Column> getColumns(String dbname,String tablename)  throws SQLException;
+	List<Column> getColumns(String dbname,String tablename)  throws SQLException;
 	
 	public Table getTable(String dbname,String tablename);
 

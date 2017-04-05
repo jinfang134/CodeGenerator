@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.gdnyt.dao.MysqlTableDao;
 import com.gdnyt.dao.TableDao;
+import com.gdnyt.dao.TableDataDao;
 import com.gdnyt.model.Setting;
 import com.gdnyt.model.Table;
 import com.gdnyt.utils.FileUtil;
@@ -27,6 +28,10 @@ public class CodeGenService {
 	@Autowired
 	private TableDao MysqlTableDao;	
 	private Setting setting;
+	
+	@Autowired
+	private TableDataDao tableDataDao;
+	
 	@Resource
 	private FreemarkerService freemarkerService;
 	
@@ -72,6 +77,13 @@ public class CodeGenService {
 		String code=freemarkerService.genByTextModel(template, map);
 		return code;
 	}
+	
+	/**
+	 * 
+	 * @param dbName
+	 * @param tableName
+	 * @return
+	 */
 	private Map<String, Object> setMap(String dbName, String tableName) {
 		List<Table> tabless=getTables(dbName,tableName);
 		Map<String ,Object> map=new HashMap<>();
@@ -82,6 +94,8 @@ public class CodeGenService {
 		}
 		return map;
 	}
+	
+	
 	
 	/**
 	 * 写入单个文件
@@ -123,6 +137,21 @@ public class CodeGenService {
 			}
 		}
 		
+	}
+	
+	/**
+	 * 從表中取值
+	 * @param tableName
+	 * @param template
+	 * @return
+	 * @throws TemplateException
+	 */
+	public String genFromTable(String tableName,String template) throws TemplateException{
+		List<Map<String, Object>> list=tableDataDao.queryAll(tableName);
+		Map<String, Object> map=new HashMap<>();
+		map.put("list", list);
+		String code=freemarkerService.genByTextModel(template, map);
+		return code;
 	}
 	
 

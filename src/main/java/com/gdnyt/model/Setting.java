@@ -24,12 +24,9 @@ public class Setting {
 	
 	private static String viewsetname; //模块名
 	
-	private static Setting setting;
+	private static Setting setting=new Setting();
 	private Setting(){};
 	
-	static{
-		setting=new Setting();
-	}
 	
 	public static Setting getInstance(){
 		return setting;
