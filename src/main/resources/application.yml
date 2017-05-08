@@ -10,3 +10,10 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.jdbc.Driver
+  datasource:
+    url: jdbc:mysql://localhost:3306/recruiting?useUnicode=true&characterEncoding=gbk&zeroDateTimeBehavior=convertToNull
+    username: root
+    password: root
+    testWhileIdle: true
+    validation-query: SELECT 1
+  

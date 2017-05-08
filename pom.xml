@@ -24,6 +24,11 @@
       <artifactId>spring-boot-starter</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
     </dependency>
@@ -41,9 +46,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>druid</artifactId>
+      <version>1.0.29</version>
+    </dependency>
+
+   <!--  <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-    </dependency>
+    </dependency> -->
 
 
     <dependency>
@@ -52,7 +63,7 @@
       <version>3.13</version>
     </dependency>
 
-  
+
 
     <!-- https://mvnrepository.com/artifact/com.fifesoft/rsyntaxtextarea -->
     <dependency>
@@ -73,7 +84,7 @@
       <version>5.0</version>
     </dependency>
 
-   
+
 
     <!-- MySQL database driver -->
     <dependency>
