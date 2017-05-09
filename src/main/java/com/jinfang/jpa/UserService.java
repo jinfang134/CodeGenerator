@@ -17,11 +17,27 @@ public class UserService {
 	@Autowired
 	private UserRepository repository;
 
+	public void testUpdate(){
+		User user = repository.findOne(1L);
+		log.info("User found with findOne(1L):");
+		log.info("--------------------------------");
+		log.info(user.toString());
+		log.info("");
+		user.setName("erwerw");
+		
+		repository.save(user);
+		user = repository.findOne(1L);
+		log.info("User found with findOne(1L):");
+		log.info("--------------------------------");
+		log.info(user.toString());
+	}
+	
 	
 	public void test() {
 		// save a couple of Users
 		
 		User user=repository.save(new User("Bauer"));
+		
 		log.info(user.toString());
 		repository.save(new User("O'Brian"));
 		repository.save(new User("Bauer"));
@@ -49,6 +65,15 @@ public class UserService {
 		for (User bauer : repository.findByName("Bauer")) {
 			log.info(bauer.toString());
 		}
+		
+		repository.delete(new User("Bauer"));
+		repository.flush();
+		log.info("User found with findByLastName('Bauer'):");
+		log.info("--------------------------------------------");
+		repository.findByName("Bauer").forEach(t->log.info(t.toString()));
+		
 		log.info("");
 	}
+	
+	
 }

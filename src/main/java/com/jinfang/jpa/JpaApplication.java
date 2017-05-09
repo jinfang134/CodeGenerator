@@ -27,7 +27,7 @@ public class JpaApplication implements ApplicationRunner{
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		// TODO Auto-generated method stub
-		service.test();
+		service.testUpdate();
 	}
 
 	
