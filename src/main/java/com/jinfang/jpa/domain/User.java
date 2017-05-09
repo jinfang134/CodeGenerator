@@ -1,4 +1,4 @@
-package com.jinfang.jpa;
+package com.jinfang.jpa.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

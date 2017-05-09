@@ -10,7 +10,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
-//@Configuration
+@Configuration
 public class DataSourceConfig {
 	// 精确到 master 目录，以便跟其他数据源隔离
 	static final String PACKAGE = "org.spring.springboot.dao.master";
