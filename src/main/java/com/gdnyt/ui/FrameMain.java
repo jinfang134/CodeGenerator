@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.sql.DataSource;
@@ -20,6 +21,7 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -151,13 +153,14 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 			putValue(NAME, "常用变量说明");
 		}
 
-		String filePath = "/html/common.html";
+		String filePath = "/html/test.html";
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			JOptionPane.showMessageDialog(FrameMain.this, getText(), "常用变量说明",
 					JOptionPane.INFORMATION_MESSAGE);
+			
 		}
 
 		private String getText(){

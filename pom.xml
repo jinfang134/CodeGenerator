@@ -92,6 +92,17 @@
 			<version>2.5.8</version>
 		</dependency>
 
+		<!-- 用于解析markdown文档成html -->
+		<dependency>
+			<groupId>com.atlassian.commonmark</groupId>
+			<artifactId>commonmark</artifactId>
+			<version>0.9.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.commonmark</groupId>
+			<artifactId>commonmark-ext-gfm-tables</artifactId>
+			<version>0.9.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.jgoodies</groupId>
@@ -103,8 +114,6 @@
 			<artifactId>miglayout-swing</artifactId>
 			<version>5.0</version>
 		</dependency>
-
-
 
 		<!-- MySQL database driver -->
 		<dependency>
