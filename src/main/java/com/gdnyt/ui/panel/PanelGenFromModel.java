@@ -1,4 +1,4 @@
-package com.gdnyt.ui;
+package com.gdnyt.ui.panel;
 
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -28,6 +28,8 @@ import org.springframework.stereotype.Component;
 
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
+import com.gdnyt.ui.Constants;
+import com.gdnyt.ui.FrameMain;
 import com.gdnyt.utils.FileUtil;
 import com.gdnyt.utils.MessageBox;
 import com.jgoodies.forms.factories.FormFactory;

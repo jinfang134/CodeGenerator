@@ -1,4 +1,4 @@
-package com.gdnyt.ui;
+package com.gdnyt.ui.panel;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -27,19 +27,19 @@ import org.springframework.stereotype.Component;
 
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
+import com.gdnyt.ui.FrameMain;
 import com.gdnyt.utils.MessageBox;
 
 import freemarker.template.TemplateException;
 
 /**
- * 代码实时生成，
+ * 根据数据表中数据生成代码
  * 
  * @author jinfang
  *
  */
-
-public class PanelGenOnTime extends JPanel implements SyntaxConstants {
-	Logger log = Logger.getLogger(PanelGenOnTime.class);
+public class PanelGenFromTable extends JPanel implements SyntaxConstants {
+	Logger log = Logger.getLogger(PanelGenFromTable.class);
 	/**
 	 * 
 	 */
@@ -55,7 +55,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 	private JTextField text_mode_prefix;
 	private JLabel label;
 
-	public PanelGenOnTime(CodeGenService genService) {
+	public PanelGenFromTable(CodeGenService genService) {
 		setLayout(new BorderLayout(0, 0));
 		setting = Setting.getInstance();
 		this.genService=genService;
@@ -113,12 +113,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 
 	}
 
-	/**
-	 * 根据excel中的元数据，来生成sql语句
-	 * 
-	 * @author jinfang
-	 *
-	 */
+	
 	private class GenSQLFromExcelAction extends AbstractAction {
 
 		@Override
@@ -137,11 +132,11 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 				MessageBox.showErrorMessage("请先载入或者编辑模板");
 				return;
 			}
-
+			String tableName=FrameMain.tablenames[rows[0]-1];
 			setting.setPrefix(text_mode_prefix.getText());					
-			String dbName = setting.getDbname();
 			try {
-				String code = genService.genCode(textArea_temp.getText(), dbName, selectedTableNames);
+				String code = genService.genFromTable(tableName, textArea_temp.getText());
+				//(, dbName, selectedTableNames);
 				textArea_code.setText(code);
 			} catch (TemplateException e2) {
 				e2.printStackTrace();

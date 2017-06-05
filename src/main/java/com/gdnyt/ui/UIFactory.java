@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.gdnyt.dao.TableDao;
 import com.gdnyt.service.CodeGenService;
+import com.gdnyt.ui.panel.PanelGenFromTable;
 
 @Component
 public class UIFactory {

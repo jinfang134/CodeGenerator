@@ -1,4 +1,4 @@
-package com.gdnyt.ui;
+package com.gdnyt.ui.panel;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import com.gdnyt.dao.MysqlTableDao;
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
+import com.gdnyt.ui.FrameMain;
 import com.gdnyt.utils.FileUtil;
 import com.gdnyt.utils.MessageBox;
 

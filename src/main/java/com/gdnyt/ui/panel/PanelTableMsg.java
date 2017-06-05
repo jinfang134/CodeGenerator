@@ -1,4 +1,4 @@
-package com.gdnyt.ui;
+package com.gdnyt.ui.panel;
 
 import java.awt.Dimension;
 
