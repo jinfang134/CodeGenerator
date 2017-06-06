@@ -30,7 +30,7 @@ public class FrameHelper extends JFrame {
 	}
 	
 	private String markdown() {
-		URL url = FrameMain.class.getResource("/markdown/string.md");
+		URL url = FrameMain.class.getResource("/markdown/function.md");
 		File file = new File(url.getFile());
 		String md = null;
 		try {

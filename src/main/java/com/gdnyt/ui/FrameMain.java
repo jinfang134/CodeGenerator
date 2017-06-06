@@ -160,6 +160,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 			// TODO Auto-generated method stub
 			JOptionPane.showMessageDialog(FrameMain.this, getText(), "常用变量说明",
 					JOptionPane.INFORMATION_MESSAGE);
+			new FrameHelper();
 			
 		}
 
