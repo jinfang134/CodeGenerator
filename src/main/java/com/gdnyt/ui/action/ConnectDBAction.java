@@ -1,73 +1,77 @@
 package com.gdnyt.ui.action;
 
-import java.awt.event.ActionEvent;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.sql.DataSource;
-import javax.swing.AbstractAction;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
 
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.gdnyt.dao.TableDao;
-import com.gdnyt.dto.ConnectionInfoContainer;
+import com.gdnyt.model.DBInfo;
+import com.gdnyt.model.EventContent;
+import com.gdnyt.model.EventType;
 import com.gdnyt.model.Setting;
+import com.gdnyt.ui.component.Subject;
 
-public class ConnectDBAction extends AbstractAction {
-	ConnectionInfoContainer connectionInfo;
+public class ConnectDBAction implements Observer {
+	DBInfo dbInfo;
 	Setting setting;
 	JdbcTemplate jdbcTemplate;
 	TableDao tableDao;
-	JComboBox db_comboBox;
-	
-	public ConnectDBAction(TableDao tableDao,ConnectionInfoContainer connectionInfo,
-			JdbcTemplate jdbcTemplate,JComboBox db_comboBox) {
-		//putValue(NAME, "Bookmarks");
-		this.jdbcTemplate=jdbcTemplate;
-		this.connectionInfo=connectionInfo;
-		this.db_comboBox=db_comboBox;
-		this.tableDao=tableDao;
-		setting=Setting.getInstance();
+
+	public ConnectDBAction(TableDao tableDao, JdbcTemplate jdbcTemplate) {
+		// putValue(NAME, "Bookmarks");
+		this.jdbcTemplate = jdbcTemplate;
+		this.tableDao = tableDao;
+		setting = Setting.getInstance();
+		Subject.getInstance().addObserver(this);
 	}
-	
-	private DataSource getDataSource(){
-		String url ="jdbc:mysql://%s:%s/information_schema?useUnicode=true&characterEncoding=UTF-8";
-		PoolProperties properties=new PoolProperties();
-		properties.setUrl(String.format(url, connectionInfo.getHost().getText(),connectionInfo.getPort().getText()));
-		properties.setUsername(connectionInfo.getUsername().getText());
-		properties.setPassword(connectionInfo.getPassword().getText());
-		DataSource dataSource=new org.apache.tomcat.jdbc.pool.DataSource(properties);
+
+	private DataSource getDataSource() {
+		String url = "jdbc:mysql://%s:%s/information_schema?useUnicode=true&characterEncoding=UTF-8";
+		PoolProperties properties = new PoolProperties();
+		properties.setUrl(String.format(url, dbInfo.getHost(), dbInfo.getPort()));
+		properties.setUsername(dbInfo.getUsername());
+		properties.setPassword(dbInfo.getPassword());
+		DataSource dataSource = new org.apache.tomcat.jdbc.pool.DataSource(properties);
 		return dataSource;
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		jdbcTemplate.setDataSource(getDataSource());
-		loadDataBase();
-		saveConnectionInfo();
+	private void saveConnectionInfo() {
+		setting.setHost(dbInfo.getHost());
+		setting.setPort(dbInfo.getPort());
+		setting.setUser(dbInfo.getUsername());
+		setting.setPwd(dbInfo.getPassword());
 	}
 
-	private void saveConnectionInfo() {
-		setting.setHost(connectionInfo.getHost().getText());
-		setting.setPort(connectionInfo.getPort().getText());
-		setting.setUser(connectionInfo.getUsername().getText());
-		setting.setPwd(connectionInfo.getPassword().getText());
-	}
-	
-	
-	
 	private void loadDataBase() {
 
 		try {
 			String[] schema = tableDao.getSchemaList();
-			db_comboBox.setModel(new DefaultComboBoxModel<>(schema));
-			db_comboBox.setSelectedItem(setting.getDbname());
-			JOptionPane.showMessageDialog(null, "数据库连接成功", "恭喜您", JOptionPane.INFORMATION_MESSAGE);
+
+			Subject.getInstance().notifyObservers(new EventContent(EventType.DB_CONNECTED, schema));
+			// JOptionPane.showMessageDialog(null, "数据库连接成功", "恭喜您",
+			// JOptionPane.INFORMATION_MESSAGE);
+			Subject.getInstance().notifyObservers(new EventContent(EventType.SHOW_STATUS, "数据库连接成功!"));
 		} catch (Exception e) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(null, "数据库连接失败", "连接出错，提示："+e.getMessage(), JOptionPane.ERROR_MESSAGE);
+			// JOptionPane.showMessageDialog(null, "数据库连接失败", "连接出错，提示：" + e.getMessage(),
+			// JOptionPane.ERROR_MESSAGE);
+			Subject.getInstance().notifyObservers(new EventContent(EventType.SHOW_STATUS, "连接出错，提示：" + e.getMessage()));
+		}
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		EventContent eventContent = (EventContent) arg;
+		if (eventContent.getEventType() == EventType.CONNECT_DB) {
+			dbInfo = (DBInfo) eventContent.getData();
+			jdbcTemplate.setDataSource(getDataSource());
+			loadDataBase();
+			saveConnectionInfo();
 		}
 	}
 }

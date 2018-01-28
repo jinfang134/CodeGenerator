@@ -3,7 +3,6 @@ package com.gdnyt.ui.panel;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -16,8 +15,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-
-import jodd.io.FileUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -32,6 +29,7 @@ import com.gdnyt.ui.FrameMain;
 import com.gdnyt.utils.MessageBox;
 
 import freemarker.template.TemplateException;
+import jodd.io.FileUtil;
 
 /**
  * 代码实时生成，
@@ -128,7 +126,6 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 		RTextScrollPane scrollPane2 = new RTextScrollPane(textArea_code, true);
 		Gutter gutter2 = scrollPane2.getGutter();
 		splitPane.setRightComponent(scrollPane2);
-
 	}
 
 	private class saveAction extends AbstractAction {
@@ -142,8 +139,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 						FileUtil.writeString(destFile, template);
 						parent.setStatusText("保存成功！");
 					} catch (IOException e1) {
-						parent.setStatusText("写入文件" + destFile.getName()
-								+ "失败！");
+						parent.setStatusText("写入文件" + destFile.getName() + "失败！");
 					}
 					return;
 				}
@@ -156,8 +152,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 						FileUtil.writeString(file, template);
 						parent.setStatusText("保存成功！");
 					} catch (IOException e1) {
-						parent.setStatusText("写入到文件" + file.getName()
-								+ "失败！");
+						parent.setStatusText("写入到文件" + file.getName() + "失败！");
 					}
 				}
 
@@ -179,10 +174,9 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 				try {
 					destFile = file;
 					textArea_temp.setText(FileUtil.readString(file));
-					parent.setStatusText("读取文件"+file.getName()+"成功！");
+					parent.setStatusText("读取文件" + file.getName() + "成功！");
 				} catch (IOException e1) {
-					MessageBox
-							.showErrorMessage("读取文件" + file.getName() + "失败！");
+					MessageBox.showErrorMessage("读取文件" + file.getName() + "失败！");
 				}
 			}
 		}
@@ -217,8 +211,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 			setting.setPrefix(text_mode_prefix.getText());
 			String dbName = setting.getDbname();
 			try {
-				String code = genService.genCode(textArea_temp.getText(),
-						dbName, selectedTableNames);
+				String code = genService.genCode(textArea_temp.getText(), dbName, selectedTableNames);
 				textArea_code.setText(code);
 			} catch (TemplateException e2) {
 				e2.printStackTrace();
