@@ -1,3 +1,4 @@
+	<resultMap type="${table.packagename}.entity.${table.classname }" id="BaseResultMap">		
 <#list table.columnlist as item >
 	<#if item.name="id">
 		<!-- 用id属性来映射主键字段 -->
@@ -5,4 +6,5 @@
 	<#else>
 		<result column="${item.columnname}"  property="${item.name}" />
 	</#if>	
-</#list>
+</#list> 
+	</resultMap>

@@ -1,6 +1,8 @@
 package com.gdnyt.ui.component;
 
-import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -8,12 +10,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
+import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+
+import net.miginfocom.swing.MigLayout;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.gdnyt.ui.event.TemplateSelectedEvent;
 
@@ -45,6 +57,8 @@ public class TemplateListPanel extends JInternalFrame {
 	private JList<String> list;
 
 	private List<TemplateSelectedEvent> events;
+	private JTextField keyword;
+	private JScrollPane scrollPane;
 
 	public TemplateListPanel() {
 		try {
@@ -61,10 +75,61 @@ public class TemplateListPanel extends JInternalFrame {
 		this.setClosable(true);
 		this.setSize(200, 500);
 		list = new JList<String>();
-		refreshList();
-		this.getContentPane().add(list, BorderLayout.NORTH);
+		refreshList("");
+		getContentPane().setLayout(
+				new MigLayout("", "[114px,grow][]", "[19px][1px][grow]"));
+
+		JButton btnDel = new JButton("删除");
+		btnDel.addActionListener(new DelListener());
+		getContentPane().add(btnDel, "cell 1 0,aligny center");
+		// this.getContentPane().add(list,
+		// "cell 0 1,alignx center,aligny bottom");
+
+		keyword = new JTextField();
+		keyword.setToolTipText("过滤");
+		keyword.setColumns(10);
+		keyword.addKeyListener(new KeywordLister());
+		getContentPane().add(keyword, "cell 0 0,alignx left,aligny center");
+
+		scrollPane = new JScrollPane();
+		scrollPane.setViewportView(list);
+		getContentPane().add(scrollPane, "cell 0 2 2 1,grow");
+
 		this.setVisible(true);
 		list.addMouseListener(new ListListener());
+	}
+
+	/**
+	 * 删除模板的事件
+	 * 
+	 * @author jinfang
+	 *
+	 */
+	private class DelListener extends AbstractAction {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			String tempName = list.getSelectedValue();
+			int response = JOptionPane.showConfirmDialog(null, "确认删除模板["
+					+ tempName + "]", "确认", JOptionPane.YES_NO_OPTION);
+			if (response == 0 && StringUtils.isNotBlank(tempName)) {
+				File file = new File("./template" + File.separator + tempName);
+				file.delete();
+				Subject.getInstance().showStatus("模板删除成功！");
+				refreshList(keyword.getText());
+			}
+		}
+
+	}
+
+	private class KeywordLister extends KeyAdapter {
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// TODO Auto-generated method stub
+			String key = keyword.getText();
+			refreshList(key);
+		}
 	}
 
 	public void AddTemplateSelectLister(TemplateSelectedEvent e) {
@@ -73,8 +138,10 @@ public class TemplateListPanel extends JInternalFrame {
 		}
 	}
 
-	public void refreshList() {
-		List<String> templates = getTemplates();
+	public void refreshList(String key) {
+		List<String> templates = getTemplates().stream()
+				.filter(item -> item.indexOf(key.toLowerCase()) > -1)
+				.collect(Collectors.toList());
 		setListData(templates);
 	}
 
