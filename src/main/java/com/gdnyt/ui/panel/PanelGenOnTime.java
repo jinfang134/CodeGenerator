@@ -161,12 +161,12 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants, Observer 
 			File file = new File("./template" + File.separator + tempName);
 			try {
 				FileUtil.writeString(file, template);
-				Subject.getInstance().showStatus("模板保存成功！");
+				Subject.getInstance().showStatus("模板[" + tempName + "]保存成功！");
 				templateFrame.refreshList("");
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
-				Subject.getInstance().showStatus("模板保存失败！");
+				Subject.getInstance().showStatus("模板[" + tempName + "]保存失败！");
 			}
 		}
 	}

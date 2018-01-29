@@ -25,8 +25,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.gdnyt.ui.event.TemplateSelectedEvent;
 
 /**
@@ -110,12 +108,14 @@ public class TemplateListPanel extends JInternalFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			String tempName = list.getSelectedValue();
-			int response = JOptionPane.showConfirmDialog(null, "确认删除模板["
-					+ tempName + "]", "确认", JOptionPane.YES_NO_OPTION);
-			if (response == 0 && StringUtils.isNotBlank(tempName)) {
-				File file = new File("./template" + File.separator + tempName);
-				file.delete();
+			List<String> tempNames = list.getSelectedValuesList();
+			int response = JOptionPane.showConfirmDialog(null, "确认删除模板"
+					+ tempNames, "确认", JOptionPane.YES_NO_OPTION);
+			if (response == 0 && tempNames.size() != 0) {
+				tempNames.forEach(item -> {
+					File file = new File("./template" + File.separator + item);
+					file.delete();
+				});
 				Subject.getInstance().showStatus("模板删除成功！");
 				refreshList(keyword.getText());
 			}
