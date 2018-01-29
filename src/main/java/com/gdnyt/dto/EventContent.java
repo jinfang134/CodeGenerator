@@ -1,4 +1,4 @@
-package com.gdnyt.model;
+package com.gdnyt.dto;
 
 /**
  * 事件

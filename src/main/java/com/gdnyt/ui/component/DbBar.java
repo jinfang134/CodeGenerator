@@ -2,6 +2,7 @@ package com.gdnyt.ui.component;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -18,9 +19,10 @@ import javax.swing.JToolBar;
 
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
+import com.gdnyt.dto.SchemaInfo;
 import com.gdnyt.model.DBInfo;
-import com.gdnyt.model.EventContent;
-import com.gdnyt.model.EventType;
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.DbresourceHolder;
 import com.gdnyt.ui.FrameMain;
@@ -78,7 +80,6 @@ public class DbBar extends JToolBar implements Observer {
 				EventContent eventContent = new EventContent(EventType.CONNECT_DB, dbInfo);
 				// Subject.getInstance().hasChanged();
 				Subject.getInstance().notifyObservers(eventContent);
-
 				System.out.println("连接数据库,notify:" + Subject.getInstance().countObservers());
 			}
 		});
@@ -119,7 +120,7 @@ public class DbBar extends JToolBar implements Observer {
 	}
 
 	private class LoadDBAction extends AbstractAction {
-		private String tableName;
+		private String dbName;
 
 		public LoadDBAction() {
 			putValue(NAME, "Bookmarks");
@@ -127,16 +128,20 @@ public class DbBar extends JToolBar implements Observer {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			tableName = (String) db_comboBox.getSelectedItem();
-			setting.setDbname(tableName);
+			dbName = (String) db_comboBox.getSelectedItem();
+			setting.setDbname(dbName);
 			DbresourceHolder.getInstance().getJdbcTemplate().setDataSource(getDataSource());
-
+			List<String> list = DbresourceHolder.getInstance().getTableDao().getTableNames(dbName);
+			SchemaInfo schemaInfo = new SchemaInfo(dbName, list);
+			Subject.getInstance().notifyObservers(new EventContent(EventType.LOAD_TABLES, schemaInfo));
+			Subject.getInstance()
+					.notifyObservers(new EventContent(EventType.SHOW_STATUS, "从数据库中读取出" + list.size() + "个表。"));
 		}
 
 		private DataSource getDataSource() {
 			String url = "jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8";
 			PoolProperties properties = new PoolProperties();
-			properties.setUrl(String.format(url, host_text.getText(), port_text.getText(), tableName));
+			properties.setUrl(String.format(url, host_text.getText(), port_text.getText(), dbName));
 			properties.setUsername(user_text.getText());
 			properties.setPassword(pwd_text.getText());
 			DataSource dataSource = new org.apache.tomcat.jdbc.pool.DataSource(properties);

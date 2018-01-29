@@ -12,61 +12,65 @@ import com.gdnyt.model.Column;
 import com.gdnyt.model.Table;
 
 @Repository
-public class MysqlTableDao implements TableDao{
-	
+public class MysqlTableDao implements TableDao {
+
 	private static Logger log = Logger.getLogger(MysqlTableDao.class);
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-	
+
 	/**
 	 * 获取数据库中的所有数据库名字
+	 * 
 	 * @return
 	 */
-	public String[] getSchemaList(){
-		
+	public String[] getSchemaList() {
+
 		String sql = "select * from schemata ";
-		List<String> schemaList=jdbcTemplate.query(sql, (rs,i)->{
+		List<String> schemaList = jdbcTemplate.query(sql, (rs, i) -> {
 			return rs.getString("SCHEMA_NAME");
 		});
-		log.info(schemaList.toString());	
+		log.info(schemaList.toString());
 		schemaList.remove("information_schema");
 		schemaList.remove("mysql");
 		schemaList.remove("performance_schema");
 		return schemaList.toArray(new String[schemaList.size()]);
-		
+
 	}
-	
+
 	/**
 	 * 获取数据库中某个库的所有数据表
+	 * 
 	 * @param dbName
 	 * @return
 	 */
-	public String[] getTableNames(String dbName){
-		String sql="select * from tables where TABLE_SCHEMA= ?";
-		List<String> tables= jdbcTemplate.query(sql, new Object[]{dbName}, (rs,index)->{
-			 return rs.getString("TABLE_NAME");
+	public List<String> getTableNames(String dbName) {
+		String sql = "select * from tables where TABLE_SCHEMA= ?";
+		List<String> tables = jdbcTemplate.query(sql, new Object[] { dbName }, (rs, index) -> {
+			return rs.getString("TABLE_NAME");
 		});
-		log.info(tables.toString());		
-		return tables.toArray(new String[tables.size()]);
+		log.info(tables.toString());
+		return tables;
 	}
-	
+
 	/**
 	 * 获取表的各列
 	 * 
-	 * @param dbname 数据库名
-	 * @param tablename 数据表名
+	 * @param dbname
+	 *            数据库名
+	 * @param tablename
+	 *            数据表名
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<Column> getColumns(String dbname,String tablename) throws SQLException {
+	public List<Column> getColumns(String dbname, String tablename) throws SQLException {
 		String sql = "select * from columns where table_name=? and table_schema=?";
-		return jdbcTemplate.query(sql, new Object[]{tablename,dbname},(rs,i)->{
+		return jdbcTemplate.query(sql, new Object[] { tablename, dbname }, (rs, i) -> {
 			Column column = new Column();
-			String comment=rs.getString("COLUMN_COMMENT").trim();
-			//如果备注为空，则用列名代替
-			if(comment==null||comment.equals(""))
-				comment=rs.getString("COLUMN_NAME").trim();
+			String comment = rs.getString("COLUMN_COMMENT").trim();
+			// 如果备注为空，则用列名代替
+			if (comment == null || comment.equals(""))
+				comment = rs.getString("COLUMN_NAME").trim();
 			column.setComment(comment);
 			column.setName(rs.getString("COLUMN_NAME").trim());
 			column.setColumnname(rs.getString("COLUMN_NAME").trim());
@@ -75,28 +79,23 @@ public class MysqlTableDao implements TableDao{
 			column.setIsnull(rs.getString("IS_NULLABLE"));
 			column.setColumntype(rs.getString("COLUMN_TYPE"));
 			column.setColumnkey(rs.getString("COLUMN_KEY"));
-			column.setExtra(rs.getString("EXTRA"));		
+			column.setExtra(rs.getString("EXTRA"));
 			column.getBigname();
 			return column;
 		});
-		
+
 	}
 
-	public Table getTable(String dbname,String tablename) {
-		String sql= "select * from tables where table_name=? and table_schema=?";
-		return jdbcTemplate.queryForObject(
-	            sql,
-	            new Object[]{tablename,dbname}, (rs,i)->{
-	    			Table table = new Table();
-	    			table.setComment(rs.getString("TABLE_COMMENT"));
-	    			table.setName(tablename);
-	    			table.setColumnlist(getColumns(dbname,tablename));	
-	    			return table;
-	    		});
+	public Table getTable(String dbname, String tablename) {
+		String sql = "select * from tables where table_name=? and table_schema=?";
+		return jdbcTemplate.queryForObject(sql, new Object[] { tablename, dbname }, (rs, i) -> {
+			Table table = new Table();
+			table.setComment(rs.getString("TABLE_COMMENT"));
+			table.setName(tablename);
+			table.setColumnlist(getColumns(dbname, tablename));
+			return table;
+		});
 	}
-	
-	
-	
 
 	/**
 	 * 进行数据库与java类型之间的映射
@@ -105,7 +104,7 @@ public class MysqlTableDao implements TableDao{
 		String javaType = "String";
 		switch (mysqlType.toLowerCase()) {
 		case "bigint":
-			javaType="Long";
+			javaType = "Long";
 			break;
 		case "varchar":
 			javaType = "String";
@@ -123,7 +122,7 @@ public class MysqlTableDao implements TableDao{
 			javaType = "Integer";
 			break;
 		case "timestamp":
-			javaType="Date";
+			javaType = "Date";
 			break;
 		case "tinyint":
 			javaType = "Integer";
@@ -132,7 +131,7 @@ public class MysqlTableDao implements TableDao{
 			javaType = "Integer";
 			break;
 		case "mediumint":
-			javaType="Integer";
+			javaType = "Integer";
 			break;
 		case "bit":
 			javaType = "Boolean";

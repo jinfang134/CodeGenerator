@@ -7,6 +7,9 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -23,9 +26,12 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
 import com.gdnyt.ui.FrameMain;
+import com.gdnyt.ui.component.Subject;
 import com.gdnyt.utils.MessageBox;
 
 import freemarker.template.TemplateException;
@@ -38,7 +44,7 @@ import jodd.io.FileUtil;
  *
  */
 
-public class PanelGenOnTime extends JPanel implements SyntaxConstants {
+public class PanelGenOnTime extends JPanel implements SyntaxConstants, Observer {
 	Logger log = Logger.getLogger(PanelGenOnTime.class);
 	/**
 	 * 
@@ -61,7 +67,10 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 
 	private FrameMain parent;
 
+	private List<String> selectedTables;
+
 	public PanelGenOnTime(CodeGenService genService, FrameMain parent) {
+		Subject.getInstance().addObserver(this);
 		setLayout(new BorderLayout(0, 0));
 		setting = Setting.getInstance();
 		this.genService = genService;
@@ -137,9 +146,9 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 				if (destFile != null) {
 					try {
 						FileUtil.writeString(destFile, template);
-						parent.setStatusText("保存成功！");
+						// parent.setStatusText("保存成功！");
 					} catch (IOException e1) {
-						parent.setStatusText("写入文件" + destFile.getName() + "失败！");
+						// parent.setStatusText("写入文件" + destFile.getName() + "失败！");
 					}
 					return;
 				}
@@ -150,9 +159,9 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 				if (file != null && file.isFile()) {
 					try {
 						FileUtil.writeString(file, template);
-						parent.setStatusText("保存成功！");
+						// parent.setStatusText("保存成功！");
 					} catch (IOException e1) {
-						parent.setStatusText("写入到文件" + file.getName() + "失败！");
+						// parent.setStatusText("写入到文件" + file.getName() + "失败！");
 					}
 				}
 
@@ -174,7 +183,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 				try {
 					destFile = file;
 					textArea_temp.setText(FileUtil.readString(file));
-					parent.setStatusText("读取文件" + file.getName() + "成功！");
+					// parent.setStatusText("读取文件" + file.getName() + "成功！");
 				} catch (IOException e1) {
 					MessageBox.showErrorMessage("读取文件" + file.getName() + "失败！");
 				}
@@ -193,16 +202,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			int[] rows = FrameMain.tree.getSelectionRows();
-			if (rows.length <= 0) {
-				MessageBox.showErrorMessage("请选择要生成的表");
-				return;
-			}
-			StringBuilder sb = new StringBuilder();
-			for (int i : rows) {
-				sb.append(FrameMain.tablenames[i - 1] + ",");
-			}
-			String selectedTableNames = sb.toString();
+
 			if (textArea_temp.getText().length() == 0) {
 				MessageBox.showErrorMessage("请先载入或者编辑模板");
 				return;
@@ -211,7 +211,7 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 			setting.setPrefix(text_mode_prefix.getText());
 			String dbName = setting.getDbname();
 			try {
-				String code = genService.genCode(textArea_temp.getText(), dbName, selectedTableNames);
+				String code = genService.genCode(textArea_temp.getText(), dbName, selectedTables);
 				textArea_code.setText(code);
 			} catch (TemplateException e2) {
 				e2.printStackTrace();
@@ -222,6 +222,15 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants {
 			log.info("模板字符：" + textArea_temp.getText());
 			MessageBox.showInfoMessage("生成完成！");
 
+		}
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		EventContent eventContent = (EventContent) arg;
+		if (eventContent.getEventType() == EventType.TABLE_SELECTED) {
+			selectedTables = (List<String>) eventContent.getData();
 		}
 	}
 

@@ -1,4 +1,4 @@
-package com.gdnyt.ui.component;
+package com.gdnyt.ui.event;
 
 import java.util.List;
 

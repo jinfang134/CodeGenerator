@@ -8,8 +8,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
-import com.gdnyt.model.EventContent;
-import com.gdnyt.model.EventType;
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
 
 public class StatusBar extends JPanel implements Observer {
 
@@ -33,6 +33,7 @@ public class StatusBar extends JPanel implements Observer {
 		if (eventContent.getEventType() == EventType.SHOW_STATUS) {
 			String msg = (String) eventContent.getData();
 			status_text.setText(msg);
+			progressBar.setVisible(false);
 		}
 	}
 

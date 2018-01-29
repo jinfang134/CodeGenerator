@@ -7,16 +7,14 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -25,10 +23,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
-import javax.swing.JTree;
 import javax.swing.UIManager;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -36,30 +31,27 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.gdnyt.dao.TableDao;
 import com.gdnyt.model.Setting;
-import com.gdnyt.model.Table;
 import com.gdnyt.service.CodeGenService;
 import com.gdnyt.ui.action.ConnectDBAction;
 import com.gdnyt.ui.component.DbBar;
 import com.gdnyt.ui.component.StatusBar;
 import com.gdnyt.ui.component.TreeViewPanel;
+import com.gdnyt.ui.event.TableSelectEvent;
 import com.gdnyt.ui.panel.PanelGenFold;
 import com.gdnyt.ui.panel.PanelGenFromModel;
 import com.gdnyt.ui.panel.PanelGenFromTable;
 import com.gdnyt.ui.panel.PanelGenOnTime;
-import com.gdnyt.ui.panel.PanelTableMsg;
-import com.gdnyt.utils.MessageBox;
 import com.gdnyt.view.TabbedPane;
 
 import freemarker.log.Logger;
 import jodd.io.FileUtil;
 
 @org.springframework.stereotype.Component
-public class FrameMain extends JFrame implements MouseListener, SyntaxConstants {
+public class FrameMain extends JFrame implements SyntaxConstants {
 	private class AboutAction extends AbstractAction {
 
 		public AboutAction() {
 			putValue(NAME, "关于");
-
 		}
 
 		@Override
@@ -171,7 +163,7 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 	public static JProgressBar progressBar;
 
 	public static JLabel status_text;
-	public static JTree tree;
+
 	public static String[] tablenames;
 	private static final String GEN_ON_TIME = "实时生成";
 	private static final long serialVersionUID = 1L;
@@ -182,18 +174,12 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 	private JdbcTemplate jdbcTemplateForTable;
 	private TableDao tableDao;
 	CodeGenService genService;
-	private JComboBox db_comboBox;
-	private JTextField host_text, port_text, pwd_text;
 	private Setting setting;
-	private JTextField user_text;
-	private JButton initbutton, connectButton, btnsql, btn_table;
-
+	private JButton btnsql, btn_table;
 	private JButton btn_ModelGen, btn_foldGen;
 	private JMenu menu;
-
 	private TabbedPane tabbedPane;
-
-	private JScrollPane treeView;
+	private TreeViewPanel treeView;
 
 	/**
 	 * Create the application.
@@ -311,69 +297,26 @@ public class FrameMain extends JFrame implements MouseListener, SyntaxConstants 
 		setBounds(100, 100, 1000, 442);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(Frame.MAXIMIZED_BOTH); // 最大化
-		getContentPane().add(new TreeViewPanel(), BorderLayout.WEST);
+		treeView = new TreeViewPanel();
+		getContentPane().add(treeView, BorderLayout.WEST);
+		treeView.addTableSelected(new TableSelectEvent() {
+
+			@Override
+			public void select(List<String> tableNames) {
+				System.out.println("select:" + tableNames);
+			}
+
+			@Override
+			public void dbClick(String tableName) {
+				// TODO Auto-generated method stub
+				System.out.println("db click:" + tableName);
+
+			}
+
+		});
 		addToolBar();
 		addContent();
 		getContentPane().add(new StatusBar(), BorderLayout.SOUTH);
 	}
 
-	// [end]
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		if (e.getClickCount() == 2) {
-			// 处理鼠标双击
-			JTree tree = (JTree) e.getSource();
-			int index = tree.getSelectionRows()[0] - 1;
-			if (index < 0) {
-				MessageBox.showErrorMessage("请选择正确的数据表");
-				return;
-			}
-			String tablename = tablenames[index];
-			Table table = tableDao.getTable(setting.getDbname(), tablename);
-			// 检查此表是否已经打开
-			int i = 0;
-			for (; i < tabbedPane.getTabCount(); i++) {
-				String title = tabbedPane.getTabAt(i).getTitleLabel();
-				if (title.equals(table.getName())) {
-					tabbedPane.setSelectedIndex(i); // 如果已经存在
-					break;
-				}
-			}
-			if (i == tabbedPane.getTabCount()) {
-				JPanel panel = new PanelTableMsg(table);
-				tabbedPane.addTab(table.getName(), null, panel, "表详细信息");
-				tabbedPane.setSelectedIndex(i);
-			}
-		}
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void setStatusText(String text) {
-		this.status_text.setText(text);
-	}
 }

@@ -9,9 +9,9 @@ import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.gdnyt.dao.TableDao;
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
 import com.gdnyt.model.DBInfo;
-import com.gdnyt.model.EventContent;
-import com.gdnyt.model.EventType;
 import com.gdnyt.model.Setting;
 import com.gdnyt.ui.component.Subject;
 
@@ -50,15 +50,10 @@ public class ConnectDBAction implements Observer {
 
 		try {
 			String[] schema = tableDao.getSchemaList();
-
 			Subject.getInstance().notifyObservers(new EventContent(EventType.DB_CONNECTED, schema));
-			// JOptionPane.showMessageDialog(null, "数据库连接成功", "恭喜您",
-			// JOptionPane.INFORMATION_MESSAGE);
 			Subject.getInstance().notifyObservers(new EventContent(EventType.SHOW_STATUS, "数据库连接成功!"));
 		} catch (Exception e) {
 			e.printStackTrace();
-			// JOptionPane.showMessageDialog(null, "数据库连接失败", "连接出错，提示：" + e.getMessage(),
-			// JOptionPane.ERROR_MESSAGE);
 			Subject.getInstance().notifyObservers(new EventContent(EventType.SHOW_STATUS, "连接出错，提示：" + e.getMessage()));
 		}
 	}

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observer;
 
-import com.gdnyt.model.EventContent;
+import com.gdnyt.dto.EventContent;
 
 public class Subject {
 

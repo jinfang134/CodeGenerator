@@ -2,10 +2,13 @@ package com.gdnyt.ui.component;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.stream.Collectors;
 
 import javax.swing.JScrollPane;
@@ -13,17 +16,22 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
+import com.gdnyt.dto.SchemaInfo;
+import com.gdnyt.ui.event.TableSelectEvent;
 import com.gdnyt.utils.MessageBox;
 import com.gdnyt.view.MyDefaultTreeCellRenderer;
-import com.openhtmltopdf.swing.SelectionHighlighter;
 
-public class TreeViewPanel extends JScrollPane {
+public class TreeViewPanel extends JScrollPane implements Observer {
+
 	private static Font font = new Font("微软雅黑", Font.PLAIN, 14);
 	private List<TableSelectEvent> events;
 	JTree tree;
 	private List<String> tableNames;
 
 	public TreeViewPanel() {
+		Subject.getInstance().addObserver(this);
 		events = new ArrayList<>();
 		tree = new JTree();
 		tree.setBackground(Color.WHITE);
@@ -35,7 +43,7 @@ public class TreeViewPanel extends JScrollPane {
 		this.setBounds(this.getX(), this.getY(), 200, this.getHeight());
 	}
 
-	private class TreeListener extends SelectionHighlighter {
+	private class TreeListener extends MouseAdapter {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
@@ -47,12 +55,16 @@ public class TreeViewPanel extends JScrollPane {
 					MessageBox.showErrorMessage("请选择正确的数据表");
 					return;
 				}
-
 				String tablename = tableNames.get(index);
 				events.forEach(event -> {
 					event.dbClick(tablename);
 				});
-
+			}
+			if (e.getClickCount() == 1) {
+				events.forEach(event -> {
+					event.select(getSelectedTables());
+				});
+				Subject.getInstance().notifyObservers(new EventContent(EventType.TABLE_SELECTED, getSelectedTables()));
 			}
 		}
 
@@ -77,6 +89,17 @@ public class TreeViewPanel extends JScrollPane {
 
 	public List<String> getSelectedTables() {
 		return Arrays.stream(tree.getSelectionRows()).mapToObj(it -> tableNames.get(it)).collect(Collectors.toList());
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		EventContent eventContent = (EventContent) arg;
+		if (eventContent.getEventType() == EventType.LOAD_TABLES) {
+			SchemaInfo schemaInfo = (SchemaInfo) eventContent.getData();
+			this.tableNames = schemaInfo.getTableNames();
+			setTableNames(schemaInfo.getDbName(), schemaInfo.getTableNames());
+		}
 	}
 
 }

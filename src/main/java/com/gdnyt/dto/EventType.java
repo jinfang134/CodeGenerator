@@ -1,4 +1,4 @@
-package com.gdnyt.model;
+package com.gdnyt.dto;
 
 public enum EventType {
 	CONNECT_DB, DB_CONNECTED,
@@ -9,5 +9,9 @@ public enum EventType {
 	/**
 	 * 加载某个数据库的所有表
 	 */
-	LOAD_TABLES, SHOW_STATUS;
+	LOAD_TABLES,
+	/**
+	 * 选中表
+	 */
+	TABLE_SELECTED, SHOW_STATUS;
 }
