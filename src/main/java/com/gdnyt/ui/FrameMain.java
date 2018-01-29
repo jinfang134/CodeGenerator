@@ -45,6 +45,7 @@ import com.gdnyt.view.TabbedPane;
 
 import freemarker.log.Logger;
 import jodd.io.FileUtil;
+import javax.swing.JTextPane;
 
 @org.springframework.stereotype.Component
 public class FrameMain extends JFrame implements SyntaxConstants {
@@ -87,7 +88,7 @@ public class FrameMain extends JFrame implements SyntaxConstants {
 		public void actionPerformed(ActionEvent e) {
 
 			if (e.getSource() == btnsql) {
-				addFrame(GEN_ON_TIME, new PanelGenOnTime(genService, parent));
+				addFrame(GEN_ON_TIME, new PanelGenOnTime(genService));
 			}
 			if (e.getSource() == btn_ModelGen) {
 				addFrame("模板生成", new PanelGenFromModel(genService));

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Observer;
 
 import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
 
 public class Subject {
 
@@ -35,6 +36,10 @@ public class Subject {
 
 	public void addObserver(Observer observer) {
 		list.add(observer);
+	}
+
+	public void showStatus(String text) {
+		notifyObservers(new EventContent(EventType.SHOW_STATUS, text));
 	}
 
 }

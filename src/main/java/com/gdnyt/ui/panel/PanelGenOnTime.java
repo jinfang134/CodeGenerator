@@ -13,11 +13,13 @@ import java.util.Observer;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+
+import jodd.io.FileUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -30,12 +32,12 @@ import com.gdnyt.dto.EventContent;
 import com.gdnyt.dto.EventType;
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
-import com.gdnyt.ui.FrameMain;
 import com.gdnyt.ui.component.Subject;
+import com.gdnyt.ui.component.TemplateListPanel;
+import com.gdnyt.ui.event.TemplateSelectedEvent;
 import com.gdnyt.utils.MessageBox;
 
 import freemarker.template.TemplateException;
-import jodd.io.FileUtil;
 
 /**
  * 代码实时生成，
@@ -60,21 +62,18 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants, Observer 
 
 	private JTextField text_mode_prefix;
 	private JLabel label;
-	private JButton btnLoad;
-	private JButton btnSave;
-	// 模板文件
-	private File destFile;
-
-	private FrameMain parent;
+	private JButton btnSave, btnNew;
 
 	private List<String> selectedTables;
+	private TemplateListPanel templateFrame;
 
-	public PanelGenOnTime(CodeGenService genService, FrameMain parent) {
+	private String tempName;
+
+	public PanelGenOnTime(CodeGenService genService) {
 		Subject.getInstance().addObserver(this);
 		setLayout(new BorderLayout(0, 0));
 		setting = Setting.getInstance();
 		this.genService = genService;
-		this.parent = parent;
 		initView();
 	}
 
@@ -83,26 +82,25 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants, Observer 
 		add(panel, BorderLayout.NORTH);
 		panel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 
-		btn_gen = new JButton("执行");
-		btn_gen.setBounds(new Rectangle(2, 2, 2, 2));
-		btn_gen.addActionListener(new GenCodeAction());
+		btnNew = new JButton("新建");
+		btnNew.addActionListener(new NewAction());
+		panel.add(btnNew);
+
+		btnSave = new JButton("保存");
+		btnSave.addActionListener(new saveAction());
+		panel.add(btnSave);
 
 		label = new JLabel("表前缀：");
 		panel.add(label);
 
 		text_mode_prefix = new JTextField();
-		panel.add(text_mode_prefix);
 		text_mode_prefix.setColumns(10);
+		panel.add(text_mode_prefix);
+
+		btn_gen = new JButton("执行");
+		btn_gen.setBounds(new Rectangle(2, 2, 2, 2));
+		btn_gen.addActionListener(new GenCodeAction());
 		panel.add(btn_gen);
-
-		btnLoad = new JButton("载入");
-		btnLoad.setBounds(new Rectangle(2, 2, 2, 20));
-		btnLoad.addActionListener(new LoadFileAction());
-		panel.add(btnLoad);
-
-		btnSave = new JButton("保存");
-		btnSave.addActionListener(new saveAction());
-		panel.add(btnSave);
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.5);
@@ -135,6 +133,20 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants, Observer 
 		RTextScrollPane scrollPane2 = new RTextScrollPane(textArea_code, true);
 		Gutter gutter2 = scrollPane2.getGutter();
 		splitPane.setRightComponent(scrollPane2);
+
+		templateFrame = new TemplateListPanel();
+		templateFrame.AddTemplateSelectLister(new TemplateSelectedEvent() {
+
+			@Override
+			public void select(String templateName, String content) {
+				// TODO Auto-generated method stub
+				System.out.println("temp is " + content);
+				textArea_temp.setText(content);
+				tempName = templateName;
+			}
+		});
+		add(templateFrame, BorderLayout.EAST);
+
 	}
 
 	private class saveAction extends AbstractAction {
@@ -142,54 +154,32 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants, Observer 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String template = textArea_temp.getText();
-			if (StringUtils.isNotBlank(template)) {
-				if (destFile != null) {
-					try {
-						FileUtil.writeString(destFile, template);
-						// parent.setStatusText("保存成功！");
-					} catch (IOException e1) {
-						// parent.setStatusText("写入文件" + destFile.getName() + "失败！");
-					}
-					return;
-				}
-				JFileChooser jfc = new JFileChooser("./");
-				jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				jfc.showDialog(new JLabel(), "选择");
-				File file = jfc.getSelectedFile();
-				if (file != null && file.isFile()) {
-					try {
-						FileUtil.writeString(file, template);
-						// parent.setStatusText("保存成功！");
-					} catch (IOException e1) {
-						// parent.setStatusText("写入到文件" + file.getName() + "失败！");
-					}
-				}
+			if (StringUtils.isBlank(tempName)) {
+				tempName = JOptionPane.showInputDialog("请输入模板的名称") + ".ftl";
+			}
 
+			File file = new File("./template" + File.separator + tempName);
+			try {
+				FileUtil.writeString(file, template);
+				Subject.getInstance().showStatus("模板保存成功！");
+				templateFrame.refreshList();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				Subject.getInstance().showStatus("模板保存失败！");
 			}
 		}
-
 	}
 
-	private class LoadFileAction extends AbstractAction {
+	private class NewAction extends AbstractAction {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			JFileChooser jfc = new JFileChooser("./");
-			jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			jfc.showDialog(new JLabel(), "选择");
-			File file = jfc.getSelectedFile();
-			if (file != null && file.isFile()) {
-				try {
-					destFile = file;
-					textArea_temp.setText(FileUtil.readString(file));
-					// parent.setStatusText("读取文件" + file.getName() + "成功！");
-				} catch (IOException e1) {
-					MessageBox.showErrorMessage("读取文件" + file.getName() + "失败！");
-				}
-			}
+			tempName = null;
+			textArea_temp.setText("");
+			Subject.getInstance().showStatus("新建模板");
 		}
-
 	}
 
 	/**
@@ -211,7 +201,8 @@ public class PanelGenOnTime extends JPanel implements SyntaxConstants, Observer 
 			setting.setPrefix(text_mode_prefix.getText());
 			String dbName = setting.getDbname();
 			try {
-				String code = genService.genCode(textArea_temp.getText(), dbName, selectedTables);
+				String code = genService.genCode(textArea_temp.getText(),
+						dbName, selectedTables);
 				textArea_code.setText(code);
 			} catch (TemplateException e2) {
 				e2.printStackTrace();

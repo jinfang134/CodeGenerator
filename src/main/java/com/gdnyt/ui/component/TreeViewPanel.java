@@ -56,16 +56,24 @@ public class TreeViewPanel extends JScrollPane implements Observer {
 					return;
 				}
 				String tablename = tableNames.get(index);
-				events.forEach(event -> {
-					event.dbClick(tablename);
-				});
+				fireDbClick(tablename);
 			}
 			if (e.getClickCount() == 1) {
 				events.forEach(event -> {
 					event.select(getSelectedTables());
 				});
-				Subject.getInstance().notifyObservers(new EventContent(EventType.TABLE_SELECTED, getSelectedTables()));
+				Subject.getInstance().notifyObservers(
+						new EventContent(EventType.TABLE_SELECTED,
+								getSelectedTables()));
 			}
+		}
+
+		private void fireDbClick(String tablename) {
+			events.forEach(event -> {
+				if (event != null) {
+					event.dbClick(tablename);
+				}
+			});
 		}
 
 	}
@@ -88,7 +96,9 @@ public class TreeViewPanel extends JScrollPane implements Observer {
 	}
 
 	public List<String> getSelectedTables() {
-		return Arrays.stream(tree.getSelectionRows()).mapToObj(it -> tableNames.get(it)).collect(Collectors.toList());
+		return Arrays.stream(tree.getSelectionRows())
+				.mapToObj(it -> tableNames.get(it - 1))
+				.collect(Collectors.toList());
 	}
 
 	@Override
