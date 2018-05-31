@@ -5,14 +5,12 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.IOException;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
-import javax.annotation.Resource;
 import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -23,11 +21,12 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
-import org.springframework.stereotype.Component;
 
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
-import com.gdnyt.ui.FrameMain;
+import com.gdnyt.ui.component.Subject;
 import com.gdnyt.utils.MessageBox;
 
 import freemarker.template.TemplateException;
@@ -38,7 +37,7 @@ import freemarker.template.TemplateException;
  * @author jinfang
  *
  */
-public class PanelGenFromTable extends JPanel implements SyntaxConstants {
+public class PanelGenFromTable extends JPanel implements SyntaxConstants, Observer {
 	Logger log = Logger.getLogger(PanelGenFromTable.class);
 	/**
 	 * 
@@ -46,19 +45,21 @@ public class PanelGenFromTable extends JPanel implements SyntaxConstants {
 	private static final long serialVersionUID = 1L;
 	private static Font font = new Font("微软雅黑", Font.PLAIN, 14);
 	private Setting setting;
-	private JButton  btn_gen;
+	private JButton btn_gen;
 	private RSyntaxTextArea textArea_temp;
 	private RSyntaxTextArea textArea_code;
-	
+
 	private CodeGenService genService;
-	
+
 	private JTextField text_mode_prefix;
 	private JLabel label;
+	private List<String> selectedTables;
 
 	public PanelGenFromTable(CodeGenService genService) {
+		Subject.getInstance().addObserver(this);
 		setLayout(new BorderLayout(0, 0));
 		setting = Setting.getInstance();
-		this.genService=genService;
+		this.genService = genService;
 		initView();
 	}
 
@@ -66,7 +67,7 @@ public class PanelGenFromTable extends JPanel implements SyntaxConstants {
 		JPanel panel = new JPanel();
 		add(panel, BorderLayout.NORTH);
 		panel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		
+
 		btn_gen = new JButton("执行");
 		btn_gen.setBounds(new Rectangle(2, 2, 2, 2));
 		btn_gen.addActionListener(new GenSQLFromExcelAction());
@@ -113,30 +114,20 @@ public class PanelGenFromTable extends JPanel implements SyntaxConstants {
 
 	}
 
-	
 	private class GenSQLFromExcelAction extends AbstractAction {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			int[] rows = FrameMain.tree.getSelectionRows();
-			if (rows.length <= 0) {
-				MessageBox.showErrorMessage("请选择要生成的表");
-				return;
-			}
-			StringBuilder sb = new StringBuilder();
-			for (int i : rows) {
-				sb.append(FrameMain.tablenames[i - 1] + ",");
-			}
-			String selectedTableNames = sb.toString();
+
 			if (textArea_temp.getText().length() == 0) {
 				MessageBox.showErrorMessage("请先载入或者编辑模板");
 				return;
 			}
-			String tableName=FrameMain.tablenames[rows[0]-1];
-			setting.setPrefix(text_mode_prefix.getText());					
+
+			setting.setPrefix(text_mode_prefix.getText());
 			try {
-				String code = genService.genFromTable(tableName, textArea_temp.getText());
-				//(, dbName, selectedTableNames);
+				String code = genService.genFromTable(selectedTables.get(0), textArea_temp.getText());
+				// (, dbName, selectedTableNames);
 				textArea_code.setText(code);
 			} catch (TemplateException e2) {
 				e2.printStackTrace();
@@ -150,5 +141,13 @@ public class PanelGenFromTable extends JPanel implements SyntaxConstants {
 		}
 	}
 
-	
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		EventContent eventContent = (EventContent) arg;
+		if (eventContent.getEventType() == EventType.TABLE_SELECTED) {
+			selectedTables = (List<String>) eventContent.getData();
+		}
+	}
+
 }

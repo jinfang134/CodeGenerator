@@ -1,7 +1,11 @@
 package com.gdnyt.ui.panel;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
@@ -9,7 +13,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
@@ -17,20 +20,18 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import com.gdnyt.dao.MysqlTableDao;
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
 import com.gdnyt.ui.FrameMain;
+import com.gdnyt.ui.component.Subject;
 import com.gdnyt.utils.FileUtil;
 import com.gdnyt.utils.MessageBox;
 
 import freemarker.template.TemplateException;
 import net.miginfocom.swing.MigLayout;
-
-import java.awt.Color;
 
 /**
  * 
@@ -41,23 +42,23 @@ import java.awt.Color;
  *
  */
 
-public class PanelGenFold extends JPanel {
+public class PanelGenFold extends JPanel implements Observer {
 
 	private JTextField text_temp, path_text, package_text, prefix_text, viewset;
 	private JButton pathButton, genButton, btn_temppath;
-	private JRadioButton mustOpenButton;	
+	private JRadioButton mustOpenButton;
 	private CodeGenService genService;
 	private Setting setting;
 	private JTextField textField;
 	private JTextArea txtarea_msg;
 	private JLabel label;
+	private List<String> selectedTables;
 
-	
-	
 	public PanelGenFold(CodeGenService genService) {
+		Subject.getInstance().addObserver(this);
 		initView();
 		setting = Setting.getInstance();
-		this.genService=genService;
+		this.genService = genService;
 		path_text.setText(setting.getPath() == null ? "" : setting.getPath());
 		package_text.setText(setting.getPackagename());
 		prefix_text.setText(setting.getPrefix());
@@ -94,7 +95,7 @@ public class PanelGenFold extends JPanel {
 		pathButton.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/document_yellow.png")));
 		pathButton.addActionListener(new SelectPathAction());
 		add(pathButton, "cell 2 1,alignx left,aligny top");
-		
+
 		label = new JLabel("注意：生成代码时会先清空此目录，请慎重！");
 		label.setForeground(Color.RED);
 		add(label, "cell 1 2");
@@ -220,16 +221,7 @@ public class PanelGenFold extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			int[] rows = FrameMain.tree.getSelectionRows();
-			if (rows.length <= 0) {
-				MessageBox.showErrorMessage("请选择要生成的表");
-				return;
-			}
-			StringBuilder sb = new StringBuilder();
-			for (int i : rows) {
-				sb.append(FrameMain.tablenames[i - 1] + ",");
-			}
-			selectedTableNames = sb.toString();
+
 			String path = path_text.getText();
 			genService.setPath(path);
 			saveConfig();
@@ -256,29 +248,30 @@ public class PanelGenFold extends JPanel {
 				String suffix = kk[1];
 				String append = kk[0];
 				try {
-					genService.genCodeByTemplate(setting.getDbname(), temp, outpath, selectedTableNames, "." + suffix,
+					genService.genCodeByTemplate(setting.getDbname(), temp, outpath, selectedTables, "." + suffix,
 							append);
 				} catch (TemplateException e) {
 					e.printStackTrace();
 					txtarea_msg.append("异常：" + e.getMessage());
 					logger.error(e);
 				}
-			}else if(tempName.contains("@")){
-				String[] strings=tempName.split("@");
-				String fileName=strings[1].substring(0, strings[1].indexOf(".ftl"));
-				String outPath=path_text.getText()+File.separator+strings[0];
+			} else if (tempName.contains("@")) {
+				String[] strings = tempName.split("@");
+				String fileName = strings[1].substring(0, strings[1].indexOf(".ftl"));
+				String outPath = path_text.getText() + File.separator + strings[0];
 				FileUtil.makeDir(outPath);
 				txtarea_msg.append("输出路径：" + outPath + "\n");
 				try {
-					genService.genOneFile(setting.getDbname(), selectedTableNames, temp, outPath+File.separator+fileName);
+					genService.genOneFile(setting.getDbname(), selectedTables, temp,
+							outPath + File.separator + fileName);
 				} catch (TemplateException e) {
 					e.printStackTrace();
 					txtarea_msg.append("异常：" + e.getMessage());
 					logger.error(e);
 				}
-				
-			}else{
-				MessageBox.showErrorMessage(tempName+"命名不规范！");
+
+			} else {
+				MessageBox.showErrorMessage(tempName + "命名不规范！");
 			}
 		}
 
@@ -301,6 +294,15 @@ public class PanelGenFold extends JPanel {
 			}
 		}
 
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		EventContent eventContent = (EventContent) arg;
+		if (eventContent.getEventType() == EventType.TABLE_SELECTED) {
+			selectedTables = (List<String>) eventContent.getData();
+		}
 	}
 
 }

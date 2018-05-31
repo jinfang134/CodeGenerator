@@ -1,0 +1,4 @@
+<#list ApplicantInfo.columnlist as item >
+<#if item.columntype!="blob">${item.name},</#if></#list> <#list tables as table><#if table.name!="applicant_info"><#list table.columnlist as col>${table.lowername}1${col.bigname},</#list><#list table.columnlist as col>${table.lowername}2${col.bigname},</#list></#if></#list>
+<#list ApplicantInfo.columnlist as item > 
+<#if item.columntype!="blob"><#if item.type="Integer">5,<#elseif item.type="LocalDate">2012-05-23<#elseif item.type="BigDecimal">5.0,<#else>test,</#if></#if></#list> <#list tables as table><#if table.name!="applicant_info"><#list table.columnlist as item> <#if item.type="Integer">5,<#elseif item.type="LocalDate">2012-05-23,<#elseif item.type="BigDecimal">5.0,<#else>test,</#if></#list><#list table.columnlist as item><#if item.type="Integer">5,<#elseif item.type="LocalDate">2012-05-23,<#elseif item.type="BigDecimal">5.0,<#else>test,</#if></#list></#if></#list>

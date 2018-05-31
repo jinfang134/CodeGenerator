@@ -20,9 +20,9 @@ public class JpaApplication implements ApplicationRunner{
 	@Autowired
 	UserService service;
 	
-	public static void main(String[] args) {
-		SpringApplication.run(JpaApplication.class);
-	}
+//	public static void main(String[] args) {
+//		SpringApplication.run(JpaApplication.class);
+//	}
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {

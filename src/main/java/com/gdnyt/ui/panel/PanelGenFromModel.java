@@ -4,8 +4,10 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
-import javax.annotation.Resource;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -13,7 +15,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
@@ -26,10 +27,13 @@ import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.springframework.stereotype.Component;
 
+import com.gdnyt.dto.EventContent;
+import com.gdnyt.dto.EventType;
 import com.gdnyt.model.Setting;
 import com.gdnyt.service.CodeGenService;
 import com.gdnyt.ui.Constants;
 import com.gdnyt.ui.FrameMain;
+import com.gdnyt.ui.component.Subject;
 import com.gdnyt.utils.FileUtil;
 import com.gdnyt.utils.MessageBox;
 import com.jgoodies.forms.factories.FormFactory;
@@ -39,7 +43,6 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import freemarker.template.TemplateException;
 
-
 /**
  * 根据写入的模板来生成代码
  * 
@@ -47,45 +50,46 @@ import freemarker.template.TemplateException;
  *
  */
 @Component
-public class PanelGenFromModel extends JPanel implements SyntaxConstants{
+public class PanelGenFromModel extends JPanel implements SyntaxConstants, Observer {
 	Logger log = Logger.getLogger(PanelGenFromModel.class);
-	
+
 	private RSyntaxTextArea text_model;
-	private JTextField 		text_mode_prefix,text_model_append,text_model_exportpath;
-	private JButton btn_model_saveModel,btn_model_import,btn_GenCodeFromModel,btn_model_exportpath;
+	private JTextField text_mode_prefix, text_model_append, text_model_exportpath;
+	private JButton btn_model_saveModel, btn_model_import, btn_GenCodeFromModel, btn_model_exportpath;
 	private JComboBox comboBox_suffix;
-	String[] suffix=new String[]{".java",".cs",".html",".sql",".jsp",".aspx",".xml",".js"};
+	String[] suffix = new String[] { ".java", ".cs", ".html", ".sql", ".jsp", ".aspx", ".xml", ".js" };
 	private Setting setting;
-	
+
 	private CodeGenService genService;
-	
-	
-	//构造器
-	public PanelGenFromModel(CodeGenService genService){
+
+	private List<String> selectedTables;
+
+	// 构造器
+	public PanelGenFromModel(CodeGenService genService) {
+		Subject.getInstance().addObserver(this);
 		initView();
 		setting = Setting.getInstance();
-		this.genService=genService;
+		this.genService = genService;
 	}
-	
-	//初始化界面
-	private void initView(){
-	
+
+	// 初始化界面
+	private void initView() {
+
 		setLayout(new FormLayout(
-				new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("84px"), FormFactory.RELATED_GAP_COLSPEC,
-						ColumnSpec.decode("150px"), FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("80px"),
+				new ColumnSpec[] { FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("84px"),
+						FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("150px"), FormFactory.RELATED_GAP_COLSPEC,
+						ColumnSpec.decode("80px"), FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC,
 						FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC,
-						FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("120px"),
-						FormFactory.RELATED_GAP_COLSPEC,
-						ColumnSpec.decode("100px:grow"),// FormFactory.DEFAULT_COLSPEC,
+						ColumnSpec.decode("120px"), FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("100px:grow"), // FormFactory.DEFAULT_COLSPEC,
 						FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC,
-						ColumnSpec.decode("126px"), }, new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("25px"),
+						ColumnSpec.decode("126px"), },
+				new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("25px"),
 						FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("172px:grow"), FormFactory.RELATED_GAP_ROWSPEC,
 						RowSpec.decode("25px"), FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("25px"), }));
 
 		JLabel label_2 = new JLabel("表名前缀：");
 		add(label_2, "2, 2, right, center");
 
-		
 		text_mode_prefix = new JTextField();
 		add(text_mode_prefix, "4, 2, fill, center");
 		text_mode_prefix.setColumns(10);
@@ -94,9 +98,8 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 		add(label_3, "6, 2, right, center");
 
 		comboBox_suffix = new JComboBox();
-		comboBox_suffix.setModel(new DefaultComboBoxModel<>(suffix));		
+		comboBox_suffix.setModel(new DefaultComboBoxModel<>(suffix));
 		add(comboBox_suffix, "8, 2, fill, center");
-		
 
 		JLabel lblNewLabel_15 = new JLabel("文件名附加：");
 		add(lblNewLabel_15, "10, 2, right, default");
@@ -104,12 +107,12 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 		text_model_append = new JTextField();
 		add(text_model_append, "12, 2, fill, default");
 		text_model_append.setColumns(10);
-		
-				btn_model_import = new JButton("载入模板");
-				btn_model_import.addActionListener(new SelectFileAction());
-				
-						btn_model_import.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/saved_imports.png")));
-						add(btn_model_import, "14, 2, left, top");
+
+		btn_model_import = new JButton("载入模板");
+		btn_model_import.addActionListener(new SelectFileAction());
+
+		btn_model_import.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/saved_imports.png")));
+		add(btn_model_import, "14, 2, left, top");
 
 		text_model = new RSyntaxTextArea();
 		text_model.setSyntaxEditingStyle(SYNTAX_STYLE_JAVA);
@@ -120,11 +123,11 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 		text_model.setMarkOccurrences(true);
 		text_model.setCodeFoldingEnabled(true);
 		text_model.setClearWhitespaceLinesEnabled(false);
-		
-				btn_model_saveModel = new JButton("保存模板");
-				btn_model_saveModel.addActionListener(new SaveFileAction());
-				btn_model_saveModel.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/page_save.png")));
-				add(btn_model_saveModel, "16, 2, left, top");
+
+		btn_model_saveModel = new JButton("保存模板");
+		btn_model_saveModel.addActionListener(new SaveFileAction());
+		btn_model_saveModel.setIcon(new ImageIcon(FrameMain.class.getResource("/icon/page_save.png")));
+		add(btn_model_saveModel, "16, 2, left, top");
 		RTextScrollPane scrollPane = new RTextScrollPane(text_model, true);
 		Gutter gutter = scrollPane.getGutter();
 		// gutter.setBookmarkingEnabled(true);
@@ -152,7 +155,6 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 
 	}
 
-
 	private class SelectPathAction extends AbstractAction {
 
 		public SelectPathAction() {
@@ -166,17 +168,16 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 			jfc.showDialog(new JLabel(), "选择");
 			File file = jfc.getSelectedFile();
 			if (file != null && file.isDirectory()) {
-				 if (e.getSource() == btn_model_exportpath) {
+				if (e.getSource() == btn_model_exportpath) {
 					text_model_exportpath.setText(file.getAbsolutePath());
 				}
-				
+
 			} else if (file != null && file.isFile()) {
 				System.out.println("文件:" + file.getAbsolutePath());
 			}
 		}
 
 	}
-
 
 	/**
 	 * 选择文件
@@ -199,34 +200,32 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 			jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			jfc.showDialog(new JLabel(), "选择");
 			FileFilter filter = null;
-//			if (e.getSource() == btn_model_import ) {
-//				String extj[] = { "ftl", "*" };
-//				filter = new FileNameExtensionFilter("freemarker模板(*.ftl)", extj);
-//			} else {
-//				String extj[] = { "xls", "*" };
-//				filter = new FileNameExtensionFilter("excel文件(*.xls)", extj);
-//			}
-//			jfc.setFileFilter(filter);
+			// if (e.getSource() == btn_model_import ) {
+			// String extj[] = { "ftl", "*" };
+			// filter = new FileNameExtensionFilter("freemarker模板(*.ftl)", extj);
+			// } else {
+			// String extj[] = { "xls", "*" };
+			// filter = new FileNameExtensionFilter("excel文件(*.xls)", extj);
+			// }
+			// jfc.setFileFilter(filter);
 			File file = jfc.getSelectedFile();
 
 			if (file != null && file.isFile()) {
 				String temp = FileUtil.readTxtFile(file.getAbsolutePath());
-				
+
 				if (e.getSource() == btn_model_import) {
 					text_model.setText(temp);
 				}
-			
+
 			}
 
 		}
 
 	}
 
-
-	
-	
 	/**
 	 * 保存文件
+	 * 
 	 * @author jinfang
 	 *
 	 */
@@ -235,9 +234,9 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			String temp = null;			
+			String temp = null;
 			temp = text_model.getText();
-			
+
 			String filename = "./";
 			String extj[] = { "ftl", "*" };
 			FileFilter filter = new FileNameExtensionFilter("freemarker模板(*.ftl)", extj);
@@ -259,10 +258,10 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 		}
 
 	}
-	
 
 	/**
 	 * 根据模板，选表生成代码
+	 * 
 	 * @author jinfang
 	 *
 	 */
@@ -272,30 +271,22 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 			// TODO Auto-generated method stub
 			// 根据模板生成代码
 			if (e.getSource() == btn_GenCodeFromModel) {
-				int[] rows = FrameMain.tree.getSelectionRows();
-				if (rows.length <= 0) {
-					MessageBox.showErrorMessage("请选择要生成的表");
-					return;
-				}
+
 				if (text_model.getText().length() == 0) {
 					MessageBox.showErrorMessage("请先载入或者编辑模板");
 					return;
 				}
-				
+
 				setting.setPrefix(text_mode_prefix.getText());
-				StringBuilder sb = new StringBuilder();
-				for (int i : rows) {
-					sb.append(FrameMain.tablenames[i - 1] + ",");
-				}
-				String tablenames = sb.toString();
-				
+
 				try {
-					genService.genCodeByTemplate(setting.getDbname(),text_model.getText(), text_model_exportpath.getText(), tablenames, comboBox_suffix.getSelectedItem().toString(),
-							text_model_append.getText());
+					genService.genCodeByTemplate(setting.getDbname(), text_model.getText(),
+							text_model_exportpath.getText(), selectedTables,
+							comboBox_suffix.getSelectedItem().toString(), text_model_append.getText());
 				} catch (TemplateException e2) {
 					e2.printStackTrace();
 					log.error(e2);
-					MessageBox.showErrorMessage("生成出错,错误内容："+e2.getMessage());
+					MessageBox.showErrorMessage("生成出错,错误内容：" + e2.getMessage());
 				}
 				MessageBox.showInfoMessage("生成完成！");
 				try {
@@ -307,5 +298,14 @@ public class PanelGenFromModel extends JPanel implements SyntaxConstants{
 			}
 		}
 
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		EventContent eventContent = (EventContent) arg;
+		if (eventContent.getEventType() == EventType.TABLE_SELECTED) {
+			selectedTables = (List<String>) eventContent.getData();
+		}
 	}
 }
