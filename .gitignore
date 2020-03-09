@@ -5,6 +5,7 @@
 *.war
 *.ear
 *.log
+*.iml
 
 target/
 bin/

@@ -1,29 +1,17 @@
 package com.gdnyt;
 
-import java.awt.EventQueue;
-
-import javax.sql.DataSource;
-import javax.swing.UIManager;
-
+import com.gdnyt.ui.FrameMain;
+import com.gdnyt.ui.UIFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
-import org.springframework.boot.autoconfigure.session.SessionProperties.Jdbc;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.gdnyt.dao.TableDao;
-import com.gdnyt.service.CodeGenService;
-import com.gdnyt.ui.FrameMain;
-import com.gdnyt.ui.UIFactory;
+import javax.swing.*;
+import java.awt.*;
 
 @ComponentScan
 @SpringBootApplication
